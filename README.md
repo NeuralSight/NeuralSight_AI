@@ -1,5 +1,5 @@
 # NeuralSight_AI
-![alt text](https://github.com/NeuralSight/NeuralSight_AI/blob/main/images/Logo.jpg)
+<img src="https://github.com/NeuralSight/NeuralSight_AI/blob/main/images/Logo.jpg" width="200" height="200" />
 
 NeuralSight AI is an intelligent tool that is capable of detection and highlighting pathologies on chest X-Ray images at runtime.
 
