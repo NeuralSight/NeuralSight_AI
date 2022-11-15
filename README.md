@@ -27,4 +27,4 @@ On chest X-rays NeuralSight™ is capable of Identifying, Labeling and Highlight
 ```
 
 ### Performance
-Table classification performance on the validation set.
+**Table classification performance on the validation set.**
