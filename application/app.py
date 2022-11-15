@@ -19,7 +19,7 @@ load_dotenv()
 
 #
 # # load model
-model = torch.hub.load('ultralytics/yolov5', 'custom', path="best.pt", force_reload=True)
+model = torch.hub.load('ultralytics/yolov5', 'custom', path="../best.pt", force_reload=True)
 
 
 
@@ -76,6 +76,7 @@ async def upload_file(file: UploadFile):
         open("./filer.txt", "rb"),
         os.getenv("AWS_BUCKET_NAME"), '%s/%s/%s' % (f"{os.getenv('AWS_BUCKET_FOLDER')}", os.getenv('AWS_ANNOTATIONS_FOLDER'),f"{file_to_save}.txt")
     )
+    os.remove("filer.txt")
     # send the data to aws_secret_access_key
     filename = secure_filename(file.filename)
     # send file that was uploaded.
