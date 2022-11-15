@@ -18,8 +18,12 @@ On chest X-rays NeuralSight™ is capable of Identifying, Labeling and Highlight
 * Classes: Atelectasis, Infiltration, Emphysema, Mass, Nodule, Pleural Thickening, Effusion, Consolidation etc.
 
 
-#### 2. Training Confoguration
-
+#### 2. Training Configuration
+>>
+  step1: 
+    pip install -r requirements.txt
+  step2:
+    python app.py
 
 ### Performance
 Table classification performance on the validation set.
