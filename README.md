@@ -1,5 +1,5 @@
 # NeuralSight_AI
-<img src="https://github.com/NeuralSight/NeuralSight_AI/blob/main/images/Logo.jpg" width="640" height="512" />
+<img align="centre" src="https://github.com/NeuralSight/NeuralSight_AI/blob/main/images/Logo.jpg" width="640" height="512" />
 
 NeuralSight AI is an intelligent tool that is capable of detection and highlighting pathologies on chest X-Ray images at runtime.
 
@@ -8,6 +8,7 @@ This repository contains the training code for our project entitled "NeuralSight
 ## Abstract
 
 On chest X-rays NeuralSight™ is capable of Identifying, Labeling and Highlighting over 20 respiratory diseases which include:
+
 
 ## Pipeline
 ### Model training
