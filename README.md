@@ -8,6 +8,8 @@ This repository contains the training code for our project entitled "NeuralSight
 ## Abstract
 
 On chest X-rays NeuralSight™ is capable of Identifying, Labeling and Highlighting over 20 respiratory diseases which include:
+<br />
+
 <img src="https://github.com/NeuralSight/NeuralSight_AI/blob/main/images/AI_Structure.png" width="712" height="256"/>
 
 ## Pipeline
