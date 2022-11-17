@@ -10,8 +10,21 @@ from tqdm import tqdm_notebook, tqdm, notebook
 
 
 
-BASE_IMG_TRAIN_DIR = "../input/vinbigdata-512-image-dataset/vinbigdata/train"
 
+import dotenv
+dotenv.load_dotenv()
+
+DATA_DIR = os.getenv("DATA_DIRECTORY")
+TRAIN_DIR = os.getenv("TRAIN_DIR")
+
+
+
+BASE_IMG_TRAIN_DIR = f"{DATA_DIR}/train"
+
+
+if not os.path.isfile("processed.csv"):
+    print("Please Run the Process.py file Before running this script")
+    exit(0)
 # read the data
 final_data = pd.read_csv("processed.csv")
 
@@ -54,16 +67,16 @@ train_fold_files_ids += list(final_data[final_data.fold!=fold].image_id.unique()
 
 
 
-# shutil.rmtree('/kaggle/working/yolo/labels/train')
-# shutil.rmtree('/kaggle/working/yolo/labels/val')
-# shutil.rmtree('/kaggle/working/yolo/images/train')
-# shutil.rmtree('/kaggle/working/yolo/images/val')
+# shutil.rmtree(f'{TRAIN_DIR}/labels/train')
+# shutil.rmtree(f'{TRAIN_DIR}/labels/val')
+# shutil.rmtree(f'{TRAIN_DIR}/images/train')
+# shutil.rmtree(f'{TRAIN_DIR}/images/val')
 
 # create thr directorues
-os.makedirs('/kaggle/working/yolo/labels/train', exist_ok = True)
-os.makedirs('/kaggle/working/yolo/labels/val', exist_ok = True)
-os.makedirs('/kaggle/working/yolo/images/train', exist_ok = True)
-os.makedirs('/kaggle/working/yolo/images/val', exist_ok = True)
+os.makedirs(f'{TRAIN_DIR}/labels/train', exist_ok = True)
+os.makedirs(f'{TRAIN_DIR}/labels/val', exist_ok = True)
+os.makedirs(f'{TRAIN_DIR}/images/train', exist_ok = True)
+os.makedirs(f'{TRAIN_DIR}/images/val', exist_ok = True)
 
 
 
@@ -113,10 +126,10 @@ def process_data_for_yolo(df, file_id_lists, data_type='train'):
         #print(yolo_data)
         #copy image to another directory where training will occur
         full_file_path = f"{BASE_IMG_TRAIN_DIR}/{file_id}.png"
-        shutil.copy(full_file_path, f'/kaggle/working/yolo/images/{data_type}')
+        shutil.copy(full_file_path, f'{TRAIN_DIR}/images/{data_type}')
         
         #saved format must be class, center (x,y), width, heihgt 
-        np.savetxt(os.path.join('/kaggle/working/yolo', 
+        np.savetxt(os.path.join(f'{TRAIN_DIR}', 
                                 f"labels/{data_type}/{file_id}.txt"),
                                 yolo_data, 
                                 fmt=["%d", "%f", "%f", "%f", "%f"]

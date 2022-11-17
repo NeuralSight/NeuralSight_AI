@@ -7,9 +7,18 @@ from glob import glob
 
 os.system("pip install  -U wandb -q")
 import wandb
+
+import dotenv
+dotenv.load_dotenv()
+
+
+WANDB_API_KEY = os.getenv("WANDB_API_KEY")
+TRAIN_DIR = os.getenv("TRAIN_DIR")
+
 # # set key variabkes
-os.environ["WANDB_API_KEY"] = "bb58b977d2c33d4ce08463e91cc3e3eb1af21064"
+os.environ["WANDB_API_KEY"] = WANDB_API_KEY
 os.environ["WANDB_MODE"] = "online"
+
 
 wandb.login()
 
@@ -31,14 +40,16 @@ classes = {'Cardiomegaly': 3,
  'Consolidation': 4,
  'Pneumothorax': 12}
 
+
+
 # we use coco format.
-CURR_DIR = '/kaggle/working/'
+CURR_DIR = os.getenv("CURR_DIR")
 with open(os.path.join( CURR_DIR , 'train.txt'), 'w') as f:
-    for path in glob('/kaggle/working/yolo/images/train/*'):
+    for path in glob(f'{TRAIN_DIR}/images/train/*'):
         f.write(path+'\n')
         
 with open(os.path.join( CURR_DIR , 'val.txt'), 'w') as f:
-    for path in glob('/kaggle/working/yolo/images/val/*'):
+    for path in glob(f'{TRAIN_DIR}/images/val/*'):
         f.write(path+'\n')
         
 # data infromation
@@ -66,7 +77,7 @@ os.system("cd yolov5")
 
 
 
-os.chdir('/kaggle/working/yolov5')
+os.chdir(f'{CURR_DIR}/yolov5')
 os.system("pip install -qr requirements.txt") # install dependencies
 
 
@@ -77,5 +88,5 @@ from IPython.display import Image, clear_output  # to display images
 clear_output()
 print('Using torch %s %s' % (torch.__version__, torch.cuda.get_device_properties(0) if torch.cuda.is_available() else 'CPU'))
 
-
+data_config_path = "/kaggle/working/custom.yaml"
 os.system("python train.py --img 640 --batch 8 --epochs 25 --data /kaggle/working/custom.yaml --weights yolov5x.pt")

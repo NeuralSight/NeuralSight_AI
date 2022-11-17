@@ -127,3 +127,6 @@ def random_bbox_check(data, num = 12):
     plot_multiple_img(random_image_matrix_list, title_list = img_files_list, ncols = 4, main_title="Bounding Box Pathologies Images")    
 
     
+
+    
+#show random plots

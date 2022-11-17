@@ -17,12 +17,19 @@ from cleaning import create_data
 import warnings
 warnings.filterwarnings("ignore");
 
+import dotenv
+dotenv.load_dotenv()
+
+DATA_DIR = os.getenv("DATA_DIRECTORY")
+TRAIN_DIR = os.getenv("TRAIN_DIR")
+WANDB_API_KEY = os.getenv("WANDB_API_KEY")
 
 
-
-
-DATA_DIR = "/kaggle/input/vinbigdata-512-image-dataset/vinbigdata"
-
+#check if the file exists
+if not os.path.isfile(f'{DATA_DIR}/train.csv'):
+    print(f"No SUch Directory in the path Passed  : PATH SEND :: {DATA_DIR}/train.csv")
+    print("Exiting....")
+    exit(0)
 # read the data
 df = pd.read_csv(f'{DATA_DIR}/train.csv')
 
