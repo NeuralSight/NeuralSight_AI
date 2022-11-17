@@ -45,6 +45,6 @@ On chest X-rays NeuralSight™ is capable of Identifying, Labeling and Highlight
 
 #### 2. Running Inferences.
 - `docker build -t <image name> .`
-- `docker run -d --name mycontainer -p 80:80 <image name>`
+- `docker run -d -p 80:80 <image name>`
 ### Performance
 **Table classification performance on the validation set.**
