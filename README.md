@@ -6,6 +6,8 @@ NeuralSight AI is an intelligent tool that is capable of detection and highlight
 
 This repository contains the training code for our project entitled "NeuralSight Imaging AI".
 
+You can find the project documentation [Here](https://vlm0i2.sse.codesandbox.io/)
+
 ## Abstract
 
 On chest X-rays NeuralSight™ is capable of Identifying, Labeling and Highlighting over 20 respiratory diseases which include:
