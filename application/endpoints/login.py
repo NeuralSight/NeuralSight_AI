@@ -16,10 +16,12 @@ from utils import (
     verify_password_reset_token,
 )
 
+import json
+
 router = APIRouter()
 
 
-@router.post("/login/access-token", response_model=schemas.Token)
+@router.post("/user/login", response_model=schemas.Token)
 def login_access_token(
     db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
@@ -46,7 +48,7 @@ def login_access_token(
     }
 
 
-@router.post("/login/test-token", response_model=schemas.User)
+@router.post("/user/login/test", response_model=schemas.User)
 def test_token(current_user: models.User = Depends(deps.get_current_user)) -> Any:
     """
     Test access token
@@ -54,7 +56,7 @@ def test_token(current_user: models.User = Depends(deps.get_current_user)) -> An
     return current_user
 
 
-@router.post("/password-recovery/{email}", response_model=schemas.Msg)
+@router.post("/user/password-recovery/{email}", response_model=schemas.Msg)
 def recover_password(email: str, db: Session = Depends(deps.get_db)) -> Any:
     """
     Password Recovery
@@ -70,10 +72,12 @@ def recover_password(email: str, db: Session = Depends(deps.get_db)) -> Any:
     send_reset_password_email(
         email_to=user.email, email=email, token=password_reset_token
     )
-    return {"msg": "Password recovery email sent"}
+
+    print(f"Restting...   {verify_password_reset_token(password_reset_token)}")
+    return {"msg": f"Password recovery email sent  \n Token = {password_reset_token}"}
 
 
-@router.post("/reset-password/", response_model=schemas.Msg)
+@router.post("/user/reset-password/", response_model=schemas.Msg)
 def reset_password(
     token: str = Body(...),
     new_password: str = Body(...),
@@ -83,6 +87,7 @@ def reset_password(
     Reset password
     """
     email = verify_password_reset_token(token)
+    print("New Mail:  ", email)
     if not email:
         raise HTTPException(status_code=400, detail="Invalid token")
     user = crud.user.get_by_email(db, email=email)

@@ -25,6 +25,7 @@ On chest X-rays NeuralSight™ is capable of Identifying, Labeling and Highlight
 
 #### 2. Training Configuration
 ```
+<<<<<<< HEAD
     Before starting training the script, an environment file (.env) will need to be created with the following parameters.
     
     DATA_DIRECTORY=<path to root folder of the data>
@@ -34,6 +35,9 @@ On chest X-rays NeuralSight™ is capable of Identifying, Labeling and Highlight
 ```
 ```
   step1: 
+=======
+  step1:
+>>>>>>> 55c2653 (updated readme file)
     pip install -r requirements.txt
   step2:
     python  cleaning.py
