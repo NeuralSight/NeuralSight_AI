@@ -7,7 +7,6 @@ from crud.base import CRUDBase
 from model.user import User
 from schemas.user import UserCreate, UserUpdate
 
-
 class CRUDUser(CRUDBase[User, UserCreate, UserUpdate]):
     print("CRUDUser")
     def get_by_email(self, db: Session, *, email: str) -> Optional[User]:
