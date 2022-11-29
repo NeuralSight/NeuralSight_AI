@@ -17,9 +17,16 @@ from helperApp import *
 # s3 config
 load_dotenv()
 
+# Model Loading
+import wandb
+run = wandb.init()
+artifact = run.use_artifact('stephenkamau/YOLOv5/run_eoi3j9y3_model:v0', type='model')
+artifact_dir = artifact.download()
+
+print("artifact Dir: ",artifact_dir)
 #
 # # load model
-model = torch.hub.load('ultralytics/yolov5', 'custom', path="../best.pt", force_reload=True)
+model = torch.hub.load('ultralytics/yolov5', 'custom', path=f"{artifact_dir}/best.pt", force_reload=True)
 
 
 
