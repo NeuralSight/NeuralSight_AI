@@ -22,7 +22,7 @@ On chest X-rays NeuralSight™ is capable of Identifying, Labeling and Highlight
 
 #### 2. Training Configuration
 ```
-  step1: 
+  step1:
     pip install -r requirements.txt
   step2:
     python app.py
