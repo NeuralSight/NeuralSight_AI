@@ -10,7 +10,7 @@ from endpoints import deps
 from core import security
 from core.config import settings
 from core.security import get_password_hash
-from utils import (
+from helpers import (
     generate_password_reset_token,
     send_reset_password_email,
     verify_password_reset_token,
