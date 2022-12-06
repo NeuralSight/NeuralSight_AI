@@ -34,3 +34,7 @@ def redirect_to_docs() -> Any:
 
 
 app.include_router(routers.api_router, prefix="/v1")#settings.API_V1_STR)
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app")

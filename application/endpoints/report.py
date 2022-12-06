@@ -23,6 +23,7 @@ import string, time
 import boto3, botocore, os
 
 from helperApp import *
+from datetime import datetime
 
 # s3 config
 load_dotenv()
@@ -46,14 +47,38 @@ model = torch.hub.load('ultralytics/yolov5', 'custom', path=f"{artifact_dir}/bes
 router = APIRouter()
 
 
+
+@router.post("/patient")
+async def create_patient(
+user_id: str = Form(),
+db: Session = Depends(deps.get_db),
+current_user: models.User = Depends(deps.get_current_active_user)
+):
+    # #create patient table
+    patient = crud.patient.create(db, obj_in={"id":user_id, "created_at":datetime.now(), "updated_at":datetime.now()})
+
+    return {"patient":patient, "status":"OK"}
+
+
+# create report endpoint
 @router.post('/predict')
 async def upload_file(file: UploadFile,
-user_id: str = Form(),
+patient_id: str= Form(),
 db: Session = Depends(deps.get_db),
 current_user: models.User = Depends(deps.get_current_active_user),
 ):
+
+    # check if patient exists in the database...
     #upload the text file
     # checking if image uploaded is valid
+    patient = crud.patient.get(db, id=patient_id)
+    if not patient:
+        raise HTTPException(
+            status_code=404,
+            detail="The Patient  with this Id does not exist in the system",
+        )
+
+    #end
 
     if file.filename == '':
         return {"message":"Missing file parameter!", "status":400}
@@ -97,9 +122,14 @@ current_user: models.User = Depends(deps.get_current_active_user),
     filename = secure_filename(file.filename)
 
 
-    #update patient table
-    patient = crud.patient.create(db, obj_in={"id":file_to_save, "patient_id":user_id})
+    # #update patient table
 
+    annotation_path = '%s/%s/%s' % (f"{os.getenv('AWS_BUCKET_FOLDER')}", os.getenv("AWS_ANNOTATIONS_FOLDER") ,f"{file_to_save}.txt")
+    inference_path = '%s/%s/%s' % (f"{os.getenv('AWS_BUCKET_FOLDER')}", os.getenv("AWS_INFERENCE_FOLDER") ,f"{file_to_save}.png")
+    report = crud.report.create(db, obj_in={"id":file_to_save, "patient_id":patient_id,
+    "inference_path":inference_path, "annotation_path":annotation_path, "created_at":datetime.now(), "updated_at":datetime.now()
+    })
+    # --
 
     return {"message":"Uploaded fille Successful!", "status":200, "results":{
         "annotations":{
@@ -114,7 +144,7 @@ current_user: models.User = Depends(deps.get_current_active_user),
             "Status":"DOne",
             "URL":'%s/%s/%s' % (f"{os.getenv('AWS_BUCKET_FOLDER')}", os.getenv("AWS_INFERENCE_FOLDER") ,f"{file_to_save}.png")
         },
-        "user_id":patient
+        "Reports":report
         }}
 
     # return {"Org": "Neural Labs Africa", "status":"Ok", "message":"Successful Loaded!", "user_id":patient}
