@@ -28,6 +28,8 @@ def login_access_token(
     """
     OAuth2 compatible token login, get an access token for future requests
     """
+    print("Request Has reeached Login....\n")
+    # print(form_data.username, form_data.password)
     user = crud.user.authenticate(
         db, email=form_data.username, password=form_data.password
     )
