@@ -34,8 +34,8 @@ load_dotenv()
 # artifact = run.use_artifact('stephenkamau/YOLOv5/run_eoi3j9y3_model:v0', type='model')
 # artifact_dir = artifact.download()
 
-artifact_dir = "./artifacts/run_eoi3j9y3_model:v0"
-print("artifact Dir: ",artifact_dir)
+artifact_dir = "./endpoints"
+print("artifact Dir: ",artifact_dir, os.path.isfile("./endpoints/best.pt"))
 #
 # # load model
 model = torch.hub.load('ultralytics/yolov5', 'custom', path=f"{artifact_dir}/best.pt", force_reload=True)
@@ -48,7 +48,7 @@ router = APIRouter()
 
 
 
-@router.post("/patient")
+@router.post("/")
 async def create_patient(
 user_id: str = Form(),
 db: Session = Depends(deps.get_db),
@@ -151,7 +151,45 @@ current_user: models.User = Depends(deps.get_current_active_user),
 
 
 
-@router.put("/update/{patient_id}")
+
+# get all patients
+@router.get("/")
+def get_all_patients(
+    response: Response,
+    db: Session = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100,
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Retrieve Patients.
+    """
+    patients = crud.patient.get_multi(db, skip=skip, limit=limit)
+    print("Here")
+    # response.headers["Access-Control-Expose-Headers"] = "Content-Range"
+    # response.headers["Content-Range"] = f"0-9/{len(patients)}"
+    return patients
+
+
+
+# get one patient with report
+@router.get("/{patient_id}")
+def read_patient_by_id(
+    patient_id: int,
+    current_user: models.User = Depends(deps.get_current_active_user),
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get a specific patient by id.
+    """
+    patient = crud.patient.get(db, id=patient_id)
+
+    return {"patient":patient, "patient report":patient.report}
+
+
+# TODO : DELETE PATIENT/REPORT
+
+@router.put("/report/update/{patient_id}")
 def update_patient(
     *,
     db: Session = Depends(deps.get_db),
