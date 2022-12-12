@@ -16,6 +16,7 @@ class CRUDPatient(CRUDBase[Patient, PatientCreate, PatientUpdate]):
         print("Object in is  ", obj_in)
         db_obj = Patient(
             id=obj_in.get('id'),
+            user_id = obj_in.get('user_id'),
             created_at= obj_in.get('created_at'),
             updated_at= obj_in.get('updated_at')
         )
@@ -23,6 +24,9 @@ class CRUDPatient(CRUDBase[Patient, PatientCreate, PatientUpdate]):
         db.commit()
         db.refresh(db_obj)
         return db_obj
+
+    def get_by_user_id(self, db: Session, *, user_id: Any) -> Optional[Patient]:
+        return db.query(Patient).filter(Patient.user_id == user_id).all()
 
     def update(
         self, db: Session, *, db_obj: Patient, obj_in: Union[PatientUpdate, Dict[str, Any]]
