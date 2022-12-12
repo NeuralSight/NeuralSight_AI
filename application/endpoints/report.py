@@ -55,7 +55,7 @@ db: Session = Depends(deps.get_db),
 current_user: models.User = Depends(deps.get_current_active_user)
 ):
     # #create patient table
-    patient = crud.patient.create(db, obj_in={"id":user_id, "created_at":datetime.now(), "updated_at":datetime.now()})
+    patient = crud.patient.create(db, obj_in={"id":user_id, "user_id":current_user.id, "created_at":datetime.now(), "updated_at":datetime.now()})
 
     return {"patient":patient, "status":"OK"}
 
@@ -109,10 +109,13 @@ current_user: models.User = Depends(deps.get_current_active_user),
 
         #append the name
         annotations_image.append(annotated_name)
-    txt_data = "\n".join([" ".join(["".join(str(a)) for a in item]) for item in results.pred[0].tolist()])
+    created_res = [[results.names.get(int(a), None) if item.index(a)==5 else a for a in item[-2:]] for item in results.pred[0].tolist()]
+    txt_data = [" ".join(["".join(str(a)) for a in item ]) for item in created_res]
+    txt_data = "\n".join(txt_data)
     with open("filer.txt", "w") as dat:
         dat.write(txt_data)
         dat.close()
+    
     annotations_urls = s3.upload_fileobj(
         open("./filer.txt", "rb"),
         os.getenv("AWS_BUCKET_NAME"), '%s/%s/%s' % (f"{os.getenv('AWS_BUCKET_FOLDER')}", os.getenv('AWS_ANNOTATIONS_FOLDER'),f"{file_to_save}.txt")
@@ -185,6 +188,20 @@ def read_patient_by_id(
     patient = crud.patient.get(db, id=patient_id)
 
     return {"patient":patient, "patient report":patient.report}
+
+
+@router.get("/report/{user_id}")
+def read_docters_report(
+    user_id: int,
+    current_user: models.User = Depends(deps.get_current_active_user),
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get a specific patient by id.
+    """
+    patients = crud.patient.get_by_user_id(db, user_id=current_user.id)
+
+    return {"patients":patients}
 
 
 # TODO : DELETE PATIENT/REPORT
