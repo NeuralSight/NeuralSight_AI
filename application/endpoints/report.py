@@ -34,7 +34,7 @@ run = wandb.init()
 artifact = run.use_artifact('stephenkamau/YOLOv5/run_eoi3j9y3_model:v0', type='model')
 artifact_dir = artifact.download()
 
-artifact_dir = "./endpoints"
+# artifact_dir = "./endpoints"
 print("artifact Dir: ",artifact_dir, os.path.isfile("./endpoints/best.pt"))
 #
 # # load model
