@@ -29,10 +29,10 @@ from datetime import datetime
 load_dotenv()
 
 # Model Loading
-import wandb
-run = wandb.init()
-artifact = run.use_artifact('stephenkamau/YOLOv5/run_eoi3j9y3_model:v0', type='model')
-artifact_dir = artifact.download()
+# import wandb
+# run = wandb.init()
+# artifact = run.use_artifact('stephenkamau/YOLOv5/run_eoi3j9y3_model:v0', type='model')
+# artifact_dir = artifact.download()
 
 artifact_dir = "./endpoints"
 print("artifact Dir: ",artifact_dir, os.path.isfile("./endpoints/best.pt"))
@@ -50,12 +50,18 @@ router = APIRouter()
 
 @router.post("/")
 async def create_patient(
-user_id: str = Form(),
+patient_id: str = Form(),
 db: Session = Depends(deps.get_db),
 current_user: models.User = Depends(deps.get_current_active_user)
 ):
+    #check if patient is available
+    if crud.patient.get(db, id=patient_id):
+        raise HTTPException(
+                status_code=404,
+                detail="The Patient  with this Id Already  exist in the system",
+            )
     # #create patient table
-    patient = crud.patient.create(db, obj_in={"id":user_id, "user_id":current_user.id, "created_at":datetime.now(), "updated_at":datetime.now()})
+    patient = crud.patient.create(db, obj_in={"id":patient_id, "user_id":current_user.id, "created_at":datetime.now(), "updated_at":datetime.now()})
 
     return {"patient":patient, "status":"OK"}
 
