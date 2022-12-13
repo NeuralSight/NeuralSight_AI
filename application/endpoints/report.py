@@ -29,10 +29,10 @@ from datetime import datetime
 load_dotenv()
 
 # Model Loading
-# import wandb
-# run = wandb.init()
-# artifact = run.use_artifact('stephenkamau/YOLOv5/run_eoi3j9y3_model:v0', type='model')
-# artifact_dir = artifact.download()
+import wandb
+run = wandb.init()
+artifact = run.use_artifact('stephenkamau/YOLOv5/run_eoi3j9y3_model:v0', type='model')
+artifact_dir = artifact.download()
 
 artifact_dir = "./endpoints"
 print("artifact Dir: ",artifact_dir, os.path.isfile("./endpoints/best.pt"))
@@ -115,7 +115,7 @@ current_user: models.User = Depends(deps.get_current_active_user),
     with open("filer.txt", "w") as dat:
         dat.write(txt_data)
         dat.close()
-    
+
     annotations_urls = s3.upload_fileobj(
         open("./filer.txt", "rb"),
         os.getenv("AWS_BUCKET_NAME"), '%s/%s/%s' % (f"{os.getenv('AWS_BUCKET_FOLDER')}", os.getenv('AWS_ANNOTATIONS_FOLDER'),f"{file_to_save}.txt")
