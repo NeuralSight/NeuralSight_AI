@@ -25,6 +25,8 @@ import boto3, botocore, os
 from helperApp import *
 from datetime import datetime
 
+
+
 # s3 config
 load_dotenv()
 
@@ -212,22 +214,43 @@ def read_docters_report(
 
 # TODO : DELETE PATIENT/REPORT
 
-@router.put("/report/update/{patient_id}")
-def update_patient(
+
+@router.get("/report/{report_id}")
+def get_report(
     *,
     db: Session = Depends(deps.get_db),
-    report: str = Form(),
-    patient_id: str,
+    report_id: str,
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Update a user.
     """
-    patient = crud.patient.get_by_field(db, field=patient_id)
-    if not patient:
+    report_instance = crud.report.get(db, id=report_id)
+    if not report_instance:
         raise HTTPException(
             status_code=404,
-            detail="The Patient  with this Id does not exist in the system",
+            detail="The Report with such id does not exist in the system",
         )
-    patient = crud.patient.update(db, db_obj=patient, obj_in={"report":report})
-    return patient
+    return report_instance
+
+
+
+@router.put("/report/update/{report_id}")
+def update_report(
+    *,
+    db: Session = Depends(deps.get_db),
+    report: str = Form(),
+    report_id: str,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Update a user.
+    """
+    report_instance = crud.report.get(db, id=report_id)
+    if not report:
+        raise HTTPException(
+            status_code=404,
+            detail="The Report with such id does not exist in the system",
+        )
+    report_update = crud.report.update(db, db_obj=report_instance, obj_in={"report":report})
+    return report_update
