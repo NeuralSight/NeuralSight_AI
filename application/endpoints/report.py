@@ -29,12 +29,12 @@ from datetime import datetime
 load_dotenv()
 
 # Model Loading
-import wandb
-run = wandb.init()
-artifact = run.use_artifact('stephenkamau/YOLOv5/run_eoi3j9y3_model:v0', type='model')
-artifact_dir = artifact.download()
+# import wandb
+# run = wandb.init()
+# artifact = run.use_artifact('stephenkamau/YOLOv5/run_eoi3j9y3_model:v0', type='model')
+# artifact_dir = artifact.download()
 
-# artifact_dir = "./endpoints"
+artifact_dir = "./endpoints"
 print("artifact Dir: ",artifact_dir, os.path.isfile("./endpoints/best.pt"))
 #
 # # load model
@@ -196,15 +196,15 @@ def read_patient_by_id(
     return {"patient":patient, "patient report":patient.report}
 
 
-@router.get("/report/{user_id}")
+@router.get("/doctor/all")
 def read_docters_report(
-    user_id: int,
     current_user: models.User = Depends(deps.get_current_active_user),
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
-    Get a specific patient by id.
+    Get patients created by current dioctor.
     """
+    print("here")
     patients = crud.patient.get_by_user_id(db, user_id=current_user.id)
 
     return {"patients":patients}
