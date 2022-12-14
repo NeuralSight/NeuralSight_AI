@@ -7,6 +7,8 @@ anyio==3.6.2
 asttokens==2.2.1
 backcall==0.2.0
 blinker==1.5
+alembic==1.8.1
+tenacity==8.1.0
 boto3==1.26.25
 botocore==1.29.25
 cachetools==5.2.0
