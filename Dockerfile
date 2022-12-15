@@ -3,6 +3,7 @@ MAINTAINER info@neurallabs.africa
 
 RUN echo "STARTED CREATING THE IMAGE COINTAINER"
 RUN mkdir -p NeuralSight_AI
+RUN apt-get update && apt-get -y install sudo
 RUN sudo apt install -y libgl1-mesa-glx
 COPY requirements.txt requirements.txt
 COPY . NeuralSight_AI
