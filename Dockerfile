@@ -3,12 +3,11 @@ MAINTAINER info@neurallabs.africa
 
 RUN echo "STARTED CREATING THE IMAGE COINTAINER"
 RUN mkdir -p NeuralSight_AI
-RUN apt install -y libgl1-mesa-glx
+RUN sudo apt install -y libgl1-mesa-glx
 COPY requirements.txt requirements.txt
 COPY . NeuralSight_AI
 
 RUN pip3 install --no-cache-dir --upgrade  -r requirements.txt
-RUN pip3 install --no-cache-dir --upgrade  pydantic[email]
 WORKDIR /NeuralSight_AI/application/
 
 RUN echo "the PWD is : ${pwd}"
