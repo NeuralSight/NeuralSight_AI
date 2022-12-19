@@ -142,6 +142,9 @@ current_user: models.User = Depends(deps.get_current_active_user),
     })
     # --
 
+    #base Path
+    #'http://{}.s3.amazonaws.com/'.format(os.getenv("AWS_ANNOTATIONS_FOLDER"))
+
     return {"message":"Uploaded fille Successful!", "status":200, "results":{
         "annotations":{
             "Status":"Done",
@@ -186,7 +189,7 @@ def get_all_patients(
 # get one patient with report
 @router.get("/{patient_id}")
 def read_patient_by_id(
-    patient_id: int,
+    patient_id: str,
     current_user: models.User = Depends(deps.get_current_active_user),
     db: Session = Depends(deps.get_db),
 ) -> Any:
@@ -247,10 +250,27 @@ def update_report(
     Update a user.
     """
     report_instance = crud.report.get(db, id=report_id)
-    if not report:
+    if not report_instance:
         raise HTTPException(
             status_code=404,
             detail="The Report with such id does not exist in the system",
         )
     report_update = crud.report.update(db, db_obj=report_instance, obj_in={"report":report})
     return report_update
+
+
+
+@router.get('/file/filer')
+def get_filer(
+*,
+db: Session = Depends(deps.get_db),
+current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    from fastapi.responses import StreamingResponse
+    file = s3.get_object(Bucket='sagemaker-us-east-1-472646256118', Key='Images/profile/Edwin_Screenshot from 2022-11-16 22-49-32.png')
+    content_type = file['ContentType']
+    file = file['Body']
+    return Response(file.read(), media_type=content_type)
+    # def iterfile():
+        # yield from file
+    # return StreamingResponse(content=iterfile(), media_type=content_type) #{"data":file}
