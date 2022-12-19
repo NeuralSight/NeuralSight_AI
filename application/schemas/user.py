@@ -11,6 +11,12 @@ class UserBase(BaseModel):
     full_name: Optional[str] = None
 
 
+    address: Optional[str] = None
+    location: Optional[str] = None
+    userProfile: Optional[str] = None
+    phone: Optional[str] = None
+
+
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     print("here")
