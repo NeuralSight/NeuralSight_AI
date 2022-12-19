@@ -132,7 +132,7 @@ def read_user_me(
 @router.get("/{user_id}", response_model=schemas.User)
 def read_user_by_id(
     user_id: int,
-    current_user: models.User = Depends(deps.get_current_active_user),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
     db: Session = Depends(deps.get_db),
 ) -> Any:
     """
