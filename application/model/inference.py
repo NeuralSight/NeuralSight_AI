@@ -21,6 +21,8 @@ class Patient(Base):
     id = Column(String, primary_key=True, index=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=datetime.now)
+    user_id = Column(Integer, ForeignKey("user.id"))
+    user = relationship("User", back_populates="patient_records")
     report = relationship("Report", back_populates="patient")
 
 

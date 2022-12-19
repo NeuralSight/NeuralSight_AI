@@ -6,11 +6,24 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Response
 from fastapi.encoders import jsonable_encoder
 from pydantic.networks import EmailStr
 from sqlalchemy.orm import Session
+from tempfile import NamedTemporaryFile
+import os
 
+import boto3, botocore
 import crud, model as models, schemas
 from endpoints import deps
 from core.config import settings
 from helpers import send_new_account_email
+
+# files
+from fastapi import UploadFile, File, Form
+
+# s3
+from helperApp import *
+from dotenv import load_dotenv
+load_dotenv()
+
+
 
 router = APIRouter()
 
@@ -135,22 +148,69 @@ def read_user_by_id(
     return user
 
 
-@router.put("/{user_id}", response_model=schemas.User)
-def update_user(
+
+
+
+@router.put("/profile/update")
+def update_userProfile(
     *,
     db: Session = Depends(deps.get_db),
-    user_id: int,
-    user_in: schemas.UserUpdate,
-    current_user: models.User = Depends(deps.get_current_active_superuser),
+    phone: str = Form(),
+    address: str = Form(),
+    location: str = Form(),
+    hospital: str = Form(),
+    userProfile: UploadFile = File(...),
+    current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Update a user.
+    Update a user profile details.
     """
-    user = crud.user.get(db, id=user_id)
+
+    user = current_user
     if not user:
         raise HTTPException(
             status_code=404,
             detail="The user with this username does not exist in the system",
         )
-    user = crud.user.update(db, db_obj=user, obj_in=user_in)
-    return user
+
+    temp = NamedTemporaryFile(delete=False)
+    try:
+        try:
+            contents = userProfile.file#.read()
+            # with temp as f:
+            #     f.write(contents);
+        except Exception:
+            return {"message": "There was an error uploading the file"}
+        finally:
+
+            # Here, upload the file to your S3 service using `temp.name`
+
+            #get the file extension
+
+
+            s3.upload_fileobj(
+            userProfile.file,
+            os.getenv("AWS_BUCKET_NAME"),
+            '%s/%s/%s' % (f"{os.getenv('AWS_BUCKET_FOLDER')}", os.getenv('AWS_PROFILE_FOLDER'),f"{user.full_name}_{userProfile.filename}"))
+            userProfile.file.close()
+    except Exception as e:
+        return {"message": f"There was an error processing the file  as {e}"}
+    finally:
+        #temp.close()  # the `with` statement above takes care of closing the file
+        os.remove(temp.name)  # Delete temp file
+
+    # print(contents)  # Handle file contents as desired
+
+    file_uploaded_path = '%s/%s/%s' % (f"{os.getenv('AWS_BUCKET_FOLDER')}", os.getenv('AWS_PROFILE_FOLDER'),f"{user.full_name}_{userProfile.filename}")
+    print("File Name is ", file_uploaded_path)
+    update_data = {
+    "phone": phone if phone else user.phone,
+    "address": address if address else user.address,
+    "location": location if location else user.location,
+    "hospital": hospital if hospital else user.hospital,
+    "userProfile": file_uploaded_path if userProfile else user.userProfile,
+    }
+    user = crud.user.update(db, db_obj=user, obj_in=update_data)
+    user =crud.user.get(db, id=user.id)
+    user.hashed_password =None
+    return {"user": user, "status":"OK"}

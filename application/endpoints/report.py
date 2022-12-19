@@ -25,6 +25,8 @@ import boto3, botocore, os
 from helperApp import *
 from datetime import datetime
 
+
+
 # s3 config
 load_dotenv()
 
@@ -34,8 +36,8 @@ load_dotenv()
 # artifact = run.use_artifact('stephenkamau/YOLOv5/run_eoi3j9y3_model:v0', type='model')
 # artifact_dir = artifact.download()
 
-artifact_dir = "./artifacts/run_eoi3j9y3_model:v0"
-print("artifact Dir: ",artifact_dir)
+artifact_dir = "./endpoints"
+print("artifact Dir: ",artifact_dir, os.path.isfile("./endpoints/best.pt"))
 #
 # # load model
 model = torch.hub.load('ultralytics/yolov5', 'custom', path=f"{artifact_dir}/best.pt", force_reload=True)
@@ -48,14 +50,20 @@ router = APIRouter()
 
 
 
-@router.post("/patient")
+@router.post("/")
 async def create_patient(
-user_id: str = Form(),
+patient_id: str = Form(),
 db: Session = Depends(deps.get_db),
 current_user: models.User = Depends(deps.get_current_active_user)
 ):
+    #check if patient is available
+    if crud.patient.get(db, id=patient_id):
+        raise HTTPException(
+                status_code=404,
+                detail="The Patient  with this Id Already  exist in the system",
+            )
     # #create patient table
-    patient = crud.patient.create(db, obj_in={"id":user_id, "created_at":datetime.now(), "updated_at":datetime.now()})
+    patient = crud.patient.create(db, obj_in={"id":patient_id, "user_id":current_user.id, "created_at":datetime.now(), "updated_at":datetime.now()})
 
     return {"patient":patient, "status":"OK"}
 
@@ -109,10 +117,13 @@ current_user: models.User = Depends(deps.get_current_active_user),
 
         #append the name
         annotations_image.append(annotated_name)
-    txt_data = "\n".join([" ".join(["".join(str(a)) for a in item]) for item in results.pred[0].tolist()])
+    created_res = [[results.names.get(int(a), None) if item.index(a)==5 else a for a in item[-2:]] for item in results.pred[0].tolist()]
+    txt_data = [" ".join(["".join(str(a)) for a in item ]) for item in created_res]
+    txt_data = "\n".join(txt_data)
     with open("filer.txt", "w") as dat:
         dat.write(txt_data)
         dat.close()
+
     annotations_urls = s3.upload_fileobj(
         open("./filer.txt", "rb"),
         os.getenv("AWS_BUCKET_NAME"), '%s/%s/%s' % (f"{os.getenv('AWS_BUCKET_FOLDER')}", os.getenv('AWS_ANNOTATIONS_FOLDER'),f"{file_to_save}.txt")
@@ -130,6 +141,9 @@ current_user: models.User = Depends(deps.get_current_active_user),
     "inference_path":inference_path, "annotation_path":annotation_path, "created_at":datetime.now(), "updated_at":datetime.now()
     })
     # --
+
+    #base Path
+    #'http://{}.s3.amazonaws.com/'.format(os.getenv("AWS_ANNOTATIONS_FOLDER"))
 
     return {"message":"Uploaded fille Successful!", "status":200, "results":{
         "annotations":{
@@ -151,22 +165,112 @@ current_user: models.User = Depends(deps.get_current_active_user),
 
 
 
-@router.put("/update/{patient_id}")
-def update_patient(
+
+# get all patients
+@router.get("/")
+def get_all_patients(
+    response: Response,
+    db: Session = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100,
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Retrieve Patients.
+    """
+    patients = crud.patient.get_multi(db, skip=skip, limit=limit)
+    print("Here")
+    # response.headers["Access-Control-Expose-Headers"] = "Content-Range"
+    # response.headers["Content-Range"] = f"0-9/{len(patients)}"
+    return patients
+
+
+
+# get one patient with report
+@router.get("/{patient_id}")
+def read_patient_by_id(
+    patient_id: str,
+    current_user: models.User = Depends(deps.get_current_active_user),
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get a specific patient by id.
+    """
+    patient = crud.patient.get(db, id=patient_id)
+
+    return {"patient":patient, "patient report":patient.report}
+
+
+@router.get("/doctor/all")
+def read_docters_report(
+    current_user: models.User = Depends(deps.get_current_active_user),
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get patients created by current dioctor.
+    """
+    print("here")
+    patients = crud.patient.get_by_user_id(db, user_id=current_user.id)
+
+    return {"patients":patients}
+
+
+# TODO : DELETE PATIENT/REPORT
+
+
+@router.get("/report/{report_id}")
+def get_report(
     *,
     db: Session = Depends(deps.get_db),
-    report: str = Form(),
-    patient_id: str,
+    report_id: str,
     current_user: models.User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Update a user.
     """
-    patient = crud.patient.get_by_field(db, field=patient_id)
-    if not patient:
+    report_instance = crud.report.get(db, id=report_id)
+    if not report_instance:
         raise HTTPException(
             status_code=404,
-            detail="The Patient  with this Id does not exist in the system",
+            detail="The Report with such id does not exist in the system",
         )
-    patient = crud.patient.update(db, db_obj=patient, obj_in={"report":report})
-    return patient
+    return report_instance
+
+
+
+@router.put("/report/update/{report_id}")
+def update_report(
+    *,
+    db: Session = Depends(deps.get_db),
+    report: str = Form(),
+    report_id: str,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Update a user.
+    """
+    report_instance = crud.report.get(db, id=report_id)
+    if not report_instance:
+        raise HTTPException(
+            status_code=404,
+            detail="The Report with such id does not exist in the system",
+        )
+    report_update = crud.report.update(db, db_obj=report_instance, obj_in={"report":report})
+    return report_update
+
+
+
+@router.get('/file/filer')
+def get_filer(
+*,
+db: Session = Depends(deps.get_db),
+current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    from fastapi.responses import StreamingResponse
+    file = s3.get_object(Bucket='sagemaker-us-east-1-472646256118', Key='Images/profile/Edwin_Screenshot from 2022-11-16 22-49-32.png')
+    content_type = file['ContentType']
+    file = file['Body']
+    return Response(file.read(), media_type=content_type)
+    # def iterfile():
+        # yield from file
+    # return StreamingResponse(content=iterfile(), media_type=content_type) #{"data":file}
