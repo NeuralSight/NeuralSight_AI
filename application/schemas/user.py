@@ -19,8 +19,8 @@ class UserBase(BaseModel):
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
-    print("here")
     email: EmailStr
+    hospital: str
     password: str
 
 
