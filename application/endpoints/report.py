@@ -270,6 +270,7 @@ current_user: models.User = Depends(deps.get_current_active_user),
     file = s3.get_object(Bucket='sagemaker-us-east-1-472646256118', Key='Images/profile/Edwin_Screenshot from 2022-11-16 22-49-32.png')
     content_type = file['ContentType']
     file = file['Body']
+    
     return Response(file.read(), media_type=content_type)
     # def iterfile():
         # yield from file
