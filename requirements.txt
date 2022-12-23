@@ -101,3 +101,4 @@ wandb==0.13.6
 wcwidth==0.2.5
 Werkzeug==2.2.2
 zipp==3.8.1
+prometheus-fastapi-instrumentator==5.9.1
