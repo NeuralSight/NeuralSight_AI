@@ -20,6 +20,8 @@ def init_db(db: Session) -> None:
         user_in = schemas.UserCreate(
             email=settings.FIRST_SUPERUSER,
             password=settings.FIRST_SUPERUSER_PASSWORD,
+            hospital = settings.PROJECT_NAME,
+            full_name = settings.PROJECT_NAME,
             is_superuser=True,
         )
         user = crud.user.create(db, obj_in=user_in)

@@ -21,6 +21,7 @@ import random
 from fastapi import FastAPI, File, Form, UploadFile
 import string, time
 import boto3, botocore, os
+from io import BytesIO
 
 from helperApp import *
 from datetime import datetime
@@ -86,12 +87,18 @@ current_user: models.User = Depends(deps.get_current_active_user),
             detail="The Patient  with this Id does not exist in the system",
         )
 
+    #also check if the docktor that created the patient is the one updating
+    if patient.user_id != current_user.id:
+        raise HTTPException(
+            status_code=404,
+            detail="Un Authorised Access to entry you did'nt Author",
+        )
     #end
 
     if file.filename == '':
         return {"message":"Missing file parameter!", "status":400}
 
-    file_to_save =get_random_string(15, file.filename.split(".")[0])
+    file_to_save =get_random_string(5, file.filename.split(".")[0])
     request_object_content = await file.read()
     # img_bytes = await file.read()
     uploaded_img = Image.open(io.BytesIO(request_object_content))
@@ -198,7 +205,25 @@ def read_patient_by_id(
     """
     patient = crud.patient.get(db, id=patient_id)
 
-    return {"patient":patient, "patient report":patient.report}
+    if not patient:
+        raise HTTPException(
+            status_code=404,
+            detail="The Patient  with this Id does not exist in the system",
+        )
+    #also check if the docktor that created the patient is the one updating
+    if patient.user_id != current_user.id:
+        raise HTTPException(
+            status_code=404,
+            detail="Un Authorised Access to entry you did'nt Author",
+        )
+    final_res =[]
+    if patient:
+        for patient_report in patient.report:
+            disease = s3.get_object(Bucket='sagemaker-us-east-1-472646256118',Key=f'{patient_report.annotation_path}')['Body'].read().decode('utf-8')
+            final_res.append({'disease':disease, "details":patient_report})
+    else:
+        pass
+    return {"patient":final_res}
 
 
 @router.get("/doctor/all")
@@ -229,12 +254,20 @@ def get_report(
     Update a user.
     """
     report_instance = crud.report.get(db, id=report_id)
+
     if not report_instance:
         raise HTTPException(
             status_code=404,
             detail="The Report with such id does not exist in the system",
         )
-    return report_instance
+    if report_instance.patient.user_id != current_user.id:
+        raise HTTPException(
+            status_code=404,
+            detail="Un Authorised Access to entry you did'nt Author",
+        )
+
+    details = s3.get_object(Bucket='sagemaker-us-east-1-472646256118',Key=f'{report_instance.annotation_path}')['Body'].read().decode('utf-8')
+    return {"details":report_instance, "disease":details}
 
 
 
@@ -250,27 +283,59 @@ def update_report(
     Update a user.
     """
     report_instance = crud.report.get(db, id=report_id)
+
     if not report_instance:
         raise HTTPException(
             status_code=404,
             detail="The Report with such id does not exist in the system",
+        )
+    #also check if the docktor that created the patient is the one updating
+    if report_instance.patient.user_id != current_user.id:
+        raise HTTPException(
+        status_code=404,
+        detail="Un Authorised Access to entry you did'nt Author",
         )
     report_update = crud.report.update(db, db_obj=report_instance, obj_in={"report":report})
     return report_update
 
 
 
-@router.get('/file/filer')
-def get_filer(
-*,
-db: Session = Depends(deps.get_db),
-current_user: models.User = Depends(deps.get_current_active_user),
-) -> Any:
-    from fastapi.responses import StreamingResponse
-    file = s3.get_object(Bucket='sagemaker-us-east-1-472646256118', Key='Images/profile/Edwin_Screenshot from 2022-11-16 22-49-32.png')
-    content_type = file['ContentType']
-    file = file['Body']
-    return Response(file.read(), media_type=content_type)
-    # def iterfile():
-        # yield from file
-    # return StreamingResponse(content=iterfile(), media_type=content_type) #{"data":file}
+# @router.get('/file/annotation/{key}')
+# def read_annotation_from_aws(
+# *,
+# key: str ,
+# db: Session = Depends(deps.get_db),
+# current_user: models.User = Depends(deps.get_current_active_user),
+# ) -> Any:
+#     key ="Images/annotations/tb0003_20221221150357_zknhzijnoxzodho.txt"
+#     file = s3.get_object(Bucket='sagemaker-us-east-1-472646256118', Key=f'Images/annotations/{key}')
+#     content_type = file['ContentType']
+#     file_data = file['Body'].read().decode('utf-8')
+#     print(file_data)
+#
+#     return {"data":file_data}
+
+# @router.get('/file/filer')
+# def get_filer(
+# *,
+# db: Session = Depends(deps.get_db),
+# current_user: models.User = Depends(deps.get_current_active_user),
+# ) -> Any:
+#     from fastapi.responses import StreamingResponse
+#     file = s3.get_object(Bucket='sagemaker-us-east-1-472646256118', Key='Images/profile/Edwin_Screenshot from 2022-11-16 22-49-32.png')
+#     content_type = file['ContentType']
+#     file = file['Body']
+#
+#
+#     file_byte_string = file#self.s3.get_object(Bucket=bucket, Key=key)['Body'].read()
+#     # print(file_byte_string.read())
+#     file_byte_string = Image.open(BytesIO(file_byte_string.read()))
+#     filtered_image = BytesIO()
+#     file_byte_string.save(filtered_image, "png")
+#     filtered_image.seek(0)
+#
+#     return StreamingResponse(filtered_image, media_type="image/png")
+#     # return Response(file.read(), media_type=content_type)
+#     # def iterfile():
+#         # yield from file
+#     # return StreamingResponse(content=iterfile(), media_type=content_type) #{"data":file}
