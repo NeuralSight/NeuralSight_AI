@@ -12,7 +12,7 @@
 # echo "Postgres user and database '$1' created."
 # EOF
 
-sudo apt install postgresql-client-common -y
+# sudo apt install postgresql-client-common -y
 sudo apt install postgresql postgresql-contrib
 sudo systemctl start postgresql.service
 
