@@ -1,19 +1,20 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./neurallabs.db"
-# SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+import os
+import dotenv
 
 
-# from sqlalchemy import create_engine
-# from sqlalchemy.orm import sessionmaker
-#
-# from app.core.config import settings
-#
-# engine = create_engine(settings.SQLALCHEMY_DATABASE_URI, pool_pre_ping=True)
-# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+dotenv.load_dotenv()
+
+if not os.getenv("PRODUCTION"):
+    SQLALCHEMY_DATABASE_URL = "sqlite:///./tester.db"
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    )
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+else:
+    # SQLALCHEMY_DATABASE_URL = "postgresql://nsight:nsight@localhost/nsight"
+    SQLALCHEMY_DATABASE_URL = f"postgresql://{os.getenv("DB_USER")}:{os.getenv("DB_PASSWORD")}@{host}/{os.getenv("DB_NAME")}"
+    engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
