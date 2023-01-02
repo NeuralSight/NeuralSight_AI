@@ -15,6 +15,6 @@ if not os.getenv("PRODUCTION"):
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 else:
     # SQLALCHEMY_DATABASE_URL = "postgresql://nsight:nsight@localhost/nsight"
-    SQLALCHEMY_DATABASE_URL = f"postgresql://{os.getenv("DB_USER")}:{os.getenv("DB_PASSWORD")}@{host}/{os.getenv("DB_NAME")}"
+    SQLALCHEMY_DATABASE_URL = f'postgresql://{os.getenv("DB_USER")}:{os.getenv("DB_PASSWORD")}@{os.getenv("DB_HOST")}/{os.getenv("DB_NAME")}'
     engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
