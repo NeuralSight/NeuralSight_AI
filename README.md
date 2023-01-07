@@ -61,3 +61,10 @@ OR
 ```
 ### Performance
 **Table classification performance on the validation set.**
+
+
+## Known Bugs.
+{There are no known bugs}
+
+## Support and contact details
+{Any issues, questions, ideas, concerns or contributions to the code are highly encouraged. Contacts: info@neurallabs.africa, paul.ndirangu@neurallabs.africa & tom.kinyanjui@neurallabs.africa}
