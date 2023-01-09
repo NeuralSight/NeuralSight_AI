@@ -26,6 +26,16 @@ if settings.BACKEND_CORS_ORIGINS:
     )
 
 
+# get the details to create super user
+from createsuperuser import main as createsuperuser_db
+from db_starter import main as db_initializer
+
+# initializing DATABASE
+db_initializer()
+print("DB Initialized well")
+# create super user
+createsuperuser_db()
+print("Super User Init well")
 
 
 @app.get("/", tags=["Redirect"])
