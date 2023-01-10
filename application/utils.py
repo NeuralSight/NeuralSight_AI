@@ -44,37 +44,6 @@ conf = ConnectionConfig(
     TEMPLATE_FOLDER='email-templates/'
 )
 #
-def send_email_async(subject: str, email_to: str, body: dict):
-    message = MessageSchema(
-        subject=subject,
-        recipients=[email_to],
-        body=body,
-        subtype='html',
-    )
-
-    fm = FastMail(conf)
-    c = fm.send_message(message, template_name=f'email-templates/email.html')
-    print(f"Sendndnd  {c}")
-
-def send_email_background(background_tasks: BackgroundTasks, subject: str, email_to: str, body: dict):
-    message = MessageSchema(
-        subject=subject,
-        recipients=[email_to],
-        body=body,
-        subtype='html',
-    )
-    fm = FastMail(conf)
-    background_tasks.add_task(
-       fm.send_message, message, template_name=f'email-templates/email.html')
-
-# print("Started sending")
-# send_email_async('Hello World','stiveckamash@gmail.com',{'title': 'Hello There test', 'name': 'Kamau Stephen'})
-# async def send_email_asynchronous():
-#     await send_email_async('Hello World','someemail@gmail.com',
-#     {'title': 'Hello World', 'name': 'John Doe'})
-#     return 'Success'
-# send_email_asynchronous()
-print("Successful")
 
 def send_email(
     email_to: str,
@@ -102,7 +71,7 @@ def send_email(
 
 
 def send_test_email(email_to: str) -> None:
-    project_name = "NeuralSight"#settings.PROJECT_NAME
+    project_name = settings.PROJECT_NAME
     subject = f"{project_name} - Test email"
     with open(Path(settings.EMAIL_TEMPLATES_DIR) / "test_email.html") as f:
         template_str = f.read()
@@ -118,20 +87,20 @@ def send_test_email(email_to: str) -> None:
 # send_test_email("stephenkamau714@gmail.com")
 
 def send_reset_password_email(email_to: str, email: str, token: str) -> None:
-    project_name = "NeuralSight"#settings.PROJECT_NAME
+    project_name = settings.PROJECT_NAME
     subject = f"{project_name} - Password recovery for user {email}"
     with open(Path(settings.EMAIL_TEMPLATES_DIR) / "reset_password.html") as f:
         template_str = f.read()
     server_host = settings.SERVER_HOST
-    link = f"{server_host}/reset-password?token={token}"
-    print("Started this")
+    link = f"http://{settings.SERVER_HOST}/{settings.API_V1_STR}/user/reset_password"
+    # link = f"http://{server_host}/reset-password?token={token}"
     try:
         send_email(
         email_to=email_to,
         subject_template=subject,
         html_template=template_str,
         environment={
-        "project_name": "NeuralSight",#settings.PROJECT_NAME,
+        "project_name": settings.PROJECT_NAME,
         "username": email,
         "email": email_to,
         "valid_hours": settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS,
@@ -148,7 +117,8 @@ def send_new_account_email(email_to: str, username: str, password: str) -> None:
     subject = f"{project_name} - New account for user {username}"
     with open(Path(settings.EMAIL_TEMPLATES_DIR) / "new_account.html") as f:
         template_str = f.read()
-    link = settings.SERVER_HOST
+    link = f"http://{settings.SERVER_HOST}/{settings.API_V1_STR}"
+
     send_email(
         email_to=email_to,
         subject_template=subject,
