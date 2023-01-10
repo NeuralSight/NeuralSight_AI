@@ -23,7 +23,7 @@ lib64/
 parts/
 sdist/
 var/
-#*.db
+*.db
 *neuralLabs.db
 wheels/
 .env
