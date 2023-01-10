@@ -46,6 +46,9 @@ def read_users(
     return users
 
 
+
+
+
 @router.post("/", response_model=schemas.User)
 def create_user(
     *,
@@ -128,6 +131,26 @@ def read_user_me(
     Get current user.
     """
     return current_user
+
+
+@router.delete("/{user_id}")
+def delete_user_by_id(
+    user_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: models.User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """
+    Delete a user byy selected ID.
+    """
+    # check if the user to be deleted exists;
+    user = crud.user.get(db, id=user_id)
+    if user:
+        user_delete = crud.user.remove(db=db, id=user_id)
+        return {"user": user, "status":"OK", "message":"User has been Deleted Successful"}
+    else:
+        raise HTTPException(
+            status_code=400, detail=f"The user with such Id {user_id} doesn't Exists in the System"
+        )
 
 
 @router.get("/{user_id}", response_model=schemas.User)

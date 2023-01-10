@@ -33,6 +33,60 @@ model = torch.hub.load('ultralytics/yolov5', 'custom', path=f"{artifact_dir}/bes
 # app = Flask(__name__)
 app = FastAPI()
 
+
+
+# import logging
+#
+# from tenacity import after_log, before_log, retry, stop_after_attempt, wait_fixed
+#
+# from db.database import SessionLocal
+#
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+#
+# max_tries = 60 * 1  # 1 minutes
+# wait_seconds = 1
+#
+# from db.init_db import init_db
+#
+# def init() -> None:
+#     db = SessionLocal()
+#     init_db(db)
+#
+#
+# def maininit() -> None:
+#     logger.info("Creating initial data")
+#     init()
+#     logger.info("Initial data created")
+#
+#
+# @retry(
+#     stop=stop_after_attempt(max_tries),
+#     wait=wait_fixed(wait_seconds),
+#     before=before_log(logger, logging.INFO),
+#     after=after_log(logger, logging.WARN),
+# )
+# def init() -> None:
+#     try:
+#         db = SessionLocal()
+#         # Try to create session to check if DB is awake
+#         db.execute("SELECT 1")
+#     except Exception as e:
+#         logger.error(e)
+#         raise e
+#
+#
+# def main() -> None:
+#     logger.info("Initializing service")
+#     init()
+#     logger.info("Service finished initializing")
+#
+# print("Running Database Initialization")
+# main()
+# print("Creating super User")
+# maininit()
+
+
 @app.get("/")
 def home():
     return {"Org": "Neural Labs Africa", "status":"Ok", "message":"Successful Loaded!"}
