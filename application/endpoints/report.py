@@ -56,7 +56,7 @@ db: Session = Depends(deps.get_db),
 current_user: models.User = Depends(deps.get_current_active_user)
 ):
     #check if patient is available
-    if crud.patient.get(db, id=patient_id):
+    if not crud.patient.get(db, id=patient_id):
         raise HTTPException(
                 status_code=404,
                 detail="The Patient  with this Id Already  exist in the system",

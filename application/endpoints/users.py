@@ -76,6 +76,8 @@ def create_user(
             status_code=400,
             detail="The user with this username already exists in the system.",
         )
+
+    #need to check if hospital is already created...
     user = crud.user.create(db, obj_in=user_in)
     print(f"Mails  {settings.EMAILS_ENABLED}  and {user_in.email}")
     if settings.EMAILS_ENABLED and user_in.email:
