@@ -1,4 +1,4 @@
-# [NeuralSight Documentation](https://vlm0i2.sse.codesandbox.io/)
+# [NeuralSight Documentation](https://neuralsight.github.io/NeuralSight_Docs/)
 
 <img align="centre" src="https://github.com/NeuralSight/NeuralSight_AI/blob/main/images/Logo.jpg" width="712" height="512" />
 
@@ -6,7 +6,7 @@ NeuralSight AI is an intelligent tool that is capable of detection and highlight
 
 This repository contains the training code for our project entitled "NeuralSight Imaging AI".
 
-You can find the project documentation [Here](https://vlm0i2.sse.codesandbox.io/)
+You can find the project documentation [Here](https://neuralsight.github.io/NeuralSight_Docs/)
 
 ## Abstract
 
