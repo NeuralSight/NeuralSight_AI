@@ -6,7 +6,7 @@ NeuralSight AI is an intelligent tool that is capable of detection and highlight
 
 This repository contains the training code for our project entitled "NeuralSight Imaging AI".
 
-You can find the project documentation [Here](https://neuralsight.github.io/NeuralSight_Docs/)
+You can find the project documentation online [Here](https://neuralsight.github.io/NeuralSight_Docs/) and it's github repository [Here](https://github.com/NeuralSight/NeuralSight_Docs)
 
 ## Abstract
 
