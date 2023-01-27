@@ -48,7 +48,10 @@ You can find the API endpoints of the project [Here](https://backend.neuralsight
 4. Run the code
 5. Prerequisites
 
+
 <img src="https://github.com/NeuralSight/NeuralSight_AI/blob/main/images/AI_Structure.png" width="712" height="256"/>
+
+
 
 ## Pipeline 
 ### Model training
