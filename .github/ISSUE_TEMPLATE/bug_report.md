@@ -4,10 +4,10 @@ about: Create a report to help us improve
 title: ''
 labels: ''
 assignees: ''
-
 ---
 
-**Describe the bug**
+### **Describe the bug**
+
 A clear and concise description of what the bug is.
 
 1. Provide a detailed description of the bug, including any error messages or unexpected behavior that you have encountered.
@@ -21,16 +21,12 @@ A clear and concise description of what the bug is.
 9. If the issue is related to a specific dataset, please indicate the dataset name, version and source.
 10. If the issue is related to a specific model, please indicate the model name, version and source.
 
-**Screenshots**
+### **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
 
-
-**Additional context**
+### **Additional context**
 Add any other context about the problem here.
 
 By including these details, the development team will have all the information they need to reproduce the bug and quickly identify the source of the issue.
+> You can also send us an email at info@neurallabs.africa
