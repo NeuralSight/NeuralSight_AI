@@ -6,9 +6,22 @@ Welcome to the NeuralSight Medical Image Detection GitHub repository! This repos
 
 NeuralSight AI is an intelligent tool that is capable of detection and highlighting pathologies on chest X-Ray images at runtime.
 
-This repository contains the training code for our project entitled "NeuralSight Imaging AI".
+## What is in this Repository 
+This repository contains the entire codebase for NeuralSight AI solution backend code.The following Python Scripts are part of the codebase:
 
-You can find the project documentation online [Here](https://neuralsight.github.io/NeuralSight_Docs/) and it's github repository [Here](https://github.com/NeuralSight/NeuralSight_Docs)
+### Training directory
+* Cleaning.py : Responsible for cleaning the x-ray image dataset. 
+* Extract.py : Creates Train and Validation Files that follow yolo dataset standards.
+* Plotting.py: Allows you to visualize images and other exploratory data analysis graphs.
+* Process.py: Enables you to create a csv file that include cleaned features generated from the initial dataset
+* Training.py: Enables you to train a deep learning algorithm based on the x-ray images available and the clean csv file. 
+
+### Application Directory
+This directory contains directories and python & Fastapi Scrips used to develop the final API endpoint of the solution.
+You can find the API endpoints of the project [Here](https://backend.neuralsight.ai/docs) and alternative documentation [Here](https://backend.neuralsight.ai/redoc)
+
+> For an an indepth understanding on how to setup the project, read through the project documentation available in the link below.
+> You can find the project documentation online [Here](https://neuralsight.github.io/NeuralSight_Docs/) and it's github repository [Here](https://github.com/NeuralSight/NeuralSight_Docs)
 
 ## License
 The code in this repository is licensed under the GPL 3.0 license. This license allows for free use, distribution, and modification of the code, with the requirement that any derivative works must also be released under the GPL 3.0 license. You can find the full text of the GPL 3.0 license at the following link: https://www.gnu.org/licenses/gpl-3.0.en.html and a summary of the license can be found here: https://www.gnu.org/licenses/quick-guide-gplv3.html.
