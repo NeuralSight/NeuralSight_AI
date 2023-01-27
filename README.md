@@ -23,10 +23,6 @@ You can find the API endpoints of the project [Here](https://backend.neuralsight
 > For an an indepth understanding on how to setup the project, read through the project documentation available in the link below.
 > You can find the project documentation online [Here](https://neuralsight.github.io/NeuralSight_Docs/) and it's github repository [Here](https://github.com/NeuralSight/NeuralSight_Docs)
 
-## License
-The code in this repository is licensed under the GPL 3.0 license. This license allows for free use, distribution, and modification of the code, with the requirement that any derivative works must also be released under the GPL 3.0 license. You can find the full text of the GPL 3.0 license at the following link: https://www.gnu.org/licenses/gpl-3.0.en.html and a summary of the license can be found here: https://www.gnu.org/licenses/quick-guide-gplv3.html.
-
-Please note that while this code is open-sourced, any medical data used in this code should be used only with permission and under strict compliance with patient privacy laws and regulations.
 
 ## Important Resources:
 1. [What is NeuralSight](https://github.com/NeuralSight/Get-to-Understand-NeuralSight-AI)
@@ -92,6 +88,10 @@ OR
 ### Performance
 **Table classification performance on the validation set.**
 
+## License
+The code in this repository is licensed under the GPL 3.0 license. This license allows for free use, distribution, and modification of the code, with the requirement that any derivative works must also be released under the GPL 3.0 license. You can find the full text of the GPL 3.0 license at the following link: https://www.gnu.org/licenses/gpl-3.0.en.html and a summary of the license can be found here: https://www.gnu.org/licenses/quick-guide-gplv3.html.
+
+Please note that while this code is open-sourced, any medical data used in this code should be used only with permission and under strict compliance with patient privacy laws and regulations.
 
 ## Known Bugs.
 {There are no known bugs}
