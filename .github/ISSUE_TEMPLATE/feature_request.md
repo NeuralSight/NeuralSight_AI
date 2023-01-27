@@ -38,3 +38,5 @@ If possible, attach any relevant images or diagrams that may help to explain the
 * Feature request
 
 By including all of the above information in your feature request, you can help the development team to better understand the request and to quickly and efficiently implement the new feature.
+
+> You can also send us an email at info@neurallabs.africa
