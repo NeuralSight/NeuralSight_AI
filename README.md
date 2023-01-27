@@ -2,16 +2,33 @@
 
 <img align="centre" src="https://github.com/NeuralSight/NeuralSight_AI/blob/main/images/Logo.jpg" width="712" height="512" />
 
+Welcome to the NeuralSight Medical Image Detection GitHub repository! This repository contains code and resources for using deep learning techniques to detect specific features in medical images. The goal of this project is to improve the accuracy and efficiency of medical image analysis, with potential applications in diagnostics and treatment planning.
+
 NeuralSight AI is an intelligent tool that is capable of detection and highlighting pathologies on chest X-Ray images at runtime.
 
 This repository contains the training code for our project entitled "NeuralSight Imaging AI".
 
 You can find the project documentation online [Here](https://neuralsight.github.io/NeuralSight_Docs/) and it's github repository [Here](https://github.com/NeuralSight/NeuralSight_Docs)
 
-## Abstract
+## License
+The code in this repository is licensed under the GPL 3.0 license. This license allows for free use, distribution, and modification of the code, with the requirement that any derivative works must also be released under the GPL 3.0 license. You can find the full text of the GPL 3.0 license at the following link: https://www.gnu.org/licenses/gpl-3.0.en.html and a summary of the license can be found here: https://www.gnu.org/licenses/quick-guide-gplv3.html.
 
-On chest X-rays NeuralSight™ is capable of Identifying, Labeling and Highlighting over 20 respiratory diseases which include:
-<br />
+Please note that while this code is open-sourced, any medical data used in this code should be used only with permission and under strict compliance with patient privacy laws and regulations.
+
+## Important Resources:
+1. [What is NeuralSight](https://github.com/NeuralSight/Get-to-Understand-NeuralSight-AI)
+2. [NeuralSight Project Documentation](https://neuralsight.github.io/NeuralSight_Docs/)
+3. [NeuralSight Frontend Repository](https://github.com/NeuralSight/NeuralSight_frontend)
+4. [Company Charter](https://github.com/NeuralSight/NeuralSight_Docs)
+5. [Have a new Feature or an Issue you want fixed?](https://github.com/NeuralSight/NeuralSight_AI/tree/main/.github/ISSUE_TEMPLATE)
+
+
+## Getting Started
+1. Clone the repository
+2. Install the required dependencies
+3. Download the dataset and place it in the appropriate folder
+4. Run the code
+5. Prerequisites
 
 <img src="https://github.com/NeuralSight/NeuralSight_AI/blob/main/images/AI_Structure.png" width="712" height="256"/>
 
