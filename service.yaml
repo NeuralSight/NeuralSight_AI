@@ -4,7 +4,7 @@ metadata:
   labels:
     app: ninsight-service
   name: ninsight-service
-  namespace: neurallabs
+  # namespace: neurallabs
 spec:
   ports:
     - port: 80
