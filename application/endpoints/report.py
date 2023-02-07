@@ -62,7 +62,12 @@ current_user: models.User = Depends(deps.get_current_active_user)
                 detail="The Patient  with this Id Already  exist in the system",
             )
     # #create patient table
-    patient = crud.patient.create(db, obj_in={"id":patient_id, "user_id":current_user.id, "created_at":datetime.now(), "updated_at":datetime.now()})
+    print("USE ID ", current_user.id)
+    print("Created ID ", patient_id, "\n\n")
+    try:
+        patient = crud.patient.create(db, obj_in={"id":patient_id, "user_id":current_user.id, "created_at":datetime.now(), "updated_at":datetime.now()})
+    except Exception as e:
+        return {"message":f"An Error during Insertion i.e {e}!", "status":400}
 
     return {"patient":patient, "status":"OK"}
 
