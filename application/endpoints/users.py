@@ -182,6 +182,7 @@ def update_userProfile(
     *,
     db: Session = Depends(deps.get_db),
     phone: str = Form(default=None),
+    full_name: str = Form(default=None),
     address: str = Form(default=None),
     location: str = Form(default=None),
     # hospital: str = Form(default=None),
@@ -225,6 +226,7 @@ def update_userProfile(
     else:
         file_uploaded_path = user.userProfile
     update_data = {
+    "full_name": full_name if full_name else user.full_name,
     "phone": phone if phone else user.phone,
     "address": address if address else user.address,
     "location": location if location else user.location,
