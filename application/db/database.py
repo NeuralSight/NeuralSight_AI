@@ -11,10 +11,10 @@ DB_NAME = os.environ.get("DB_NAME")
 
 # if not in production use sqlite
 if not os.getenv("PRODUCTION"):
-    SQLALCHEMY_DATABASE_URL = "sqlite:///./neurallabs.db"
+    SQLALCHEMY_DATABASE_URL = "sqlite:///./neurallab.db"
     engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 else:
-    SQLALCHEMY_DATABASE_URL = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+    SQLALCHEMY_DATABASE_URL = f'postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
     engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_size=5, max_overflow=2, pool_pre_ping=True)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
