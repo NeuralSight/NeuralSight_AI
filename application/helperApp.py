@@ -31,4 +31,4 @@ def get_random_string(length, file_name):
     result_str = ''.join(random.choice(letters) for i in range(length))
     time_string = time.strftime("%Y%m%d%H%M%S")
 
-    return file_name+"_"+time_string +"_"+result_str
+    return str(file_name).replace(" ", "")+"_"+time_string +"_"+result_str
