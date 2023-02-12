@@ -1,5 +1,6 @@
 fastapi-mail==1.2.2
 fastapi
+prometheus-fastapi-instrumentator
 asyncpg==0.27.0
 #fastapi==0.88.0
 starlette==0.21.0
