@@ -69,7 +69,7 @@ volumes:
 
 networks:
   example-network:
-    name: example-network
+    #name: example-network
     driver: bridge
     ipam:
       driver: default
