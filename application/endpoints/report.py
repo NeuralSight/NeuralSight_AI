@@ -220,6 +220,12 @@ def read_patient_by_id(
             status_code=404,
             detail="The Patient  with this Id does not exist in the system",
         )
+    if patient.is_deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="The Patient is already deleted!",
+        )
+
     #also check if the docktor that created the patient is the one updating
     if patient.user_id != current_user.id:
         raise HTTPException(
@@ -229,8 +235,9 @@ def read_patient_by_id(
     final_res =[]
     if patient:
         for patient_report in patient.report:
-            disease = s3.get_object(Bucket='sagemaker-us-east-1-472646256118',Key=f'{patient_report.annotation_path}')['Body'].read().decode('utf-8')
-            final_res.append({'disease':disease, "details":patient_report})
+            if not patient_report.is_deleted:
+                disease = s3.get_object(Bucket='sagemaker-us-east-1-472646256118',Key=f'{patient_report.annotation_path}')['Body'].read().decode('utf-8')
+                final_res.append({'disease':disease, "details":patient_report})
     else:
         pass
     return {"patient":final_res}
@@ -250,7 +257,7 @@ def read_docters_report(
 
 
 # TODO : DELETE PATIENT/REPORT
-@router.delete("/patient/{patient_id}")
+@router.delete("/{patient_id}")
 def delete_patient_by_id(
     *,
     db: Session = Depends(deps.get_db),
@@ -266,10 +273,11 @@ def delete_patient_by_id(
             status_code=404,
             detail="The Patient  with this Id does not exist in the system or maybe deleted!",
         )
+
     if patient.is_deleted:
         raise HTTPException(
             status_code=404,
-            detail="The Patient  with this Id does not exist in the system or maybe deleted!",
+            detail="The Patient is already deleted!",
         )
     #also check if the docktor that created the patient is the one updating
     if patient.user_id != current_user.id:
@@ -278,14 +286,13 @@ def delete_patient_by_id(
             detail="Un Authorised Access to entry you did'nt Author",
         )
     #check if it exists;
-
     #save the data inot patient deleted objects
     try:
-        if crud.patient_delete.get(db, id=patient.id):
-            pass
+        patient_update = crud.patient.update(db, db_obj=patient, obj_in={"is_deleted":True})
+        if crud.patient_delete.get_by_patient(db, id=patient.id):
+            patient_deleted = crud.patient_delete.get_by_patient(db, id=patient.id)
         else:
             patient_deleted = crud.patient_delete.create(db, obj_in={"id":get_random_string(5, "deleted_object"), "patient_id":patient.id, "deleted_at":datetime.now()})
-            patient_update = crud.patient.delete_update(db, db_obj=patient, obj_in={"is_deleted":True})
     except Exception as e:
         return {"message":f"An Error during Insertion i.e {e}!", "status":400}
     return {"patient deleted":patient_deleted, "delete status":"OK", "message":"Patient Deleted well"}
@@ -311,7 +318,7 @@ def delete_report_by_id(
     if report_instance.is_deleted:
         raise HTTPException(
             status_code=404,
-            detail="The Report was deleted",
+            detail="The Report is already deleted",
         )
     if report_instance.patient.user_id != current_user.id:
         raise HTTPException(
@@ -319,11 +326,13 @@ def delete_report_by_id(
             detail="Un Authorised Access to entry you did'nt Author",
         )
 
-
     try:
         #save the data inot report deleted objects
-        report_deleted = crud.report_delete.create(db,obj_in={"id":get_random_string(5, "deleted_report_"), "report_id":report_instance.id, "deleted_at":datetime.now()})
-        report_update = crud.report.delete_update(db, db_obj=report_instance, obj_in={"is_deleted":True})
+        report_update = crud.report.update(db, db_obj=report_instance, obj_in={"is_deleted":True})
+        if crud.report_delete.get_by_report(db,id=report_instance.id):
+            report_deleted = crud.report_delete.get_by_report(db,id=report_instance.id)
+        else:
+            report_deleted = crud.report_delete.create(db,obj_in={"id":get_random_string(5, "deleted_report_"), "report_id":report_instance.id, "deleted_at":datetime.now()})
     except Exception as e:
         return {"message":f"An Error during Insertion i.e {e}!", "status":400}
     return {"Report deleted":report_deleted, "delete status":"OK", "message":"Report Deleted well"}
@@ -346,6 +355,12 @@ def get_report(
         raise HTTPException(
             status_code=404,
             detail="The Report with such id does not exist in the system",
+        )
+
+    if report_instance.is_deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="The Report was deleted from the server",
         )
     if report_instance.patient.user_id != current_user.id:
         raise HTTPException(
