@@ -1,7 +1,7 @@
 fastapi-mail==1.2.2
 fastapi
 #fastapi==0.88.0
-starlette==0.21.0
+starlette==0.25.0
 aiosmtplib==1.1.7
 anyio==3.6.2
 asttokens==2.2.1
