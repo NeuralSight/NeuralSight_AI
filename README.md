@@ -1,4 +1,4 @@
-# [NeuralSight AI Documentation](https://neuralsight.github.io/NeuralSight-Company-Charter/)
+# [NeuralSight AI Documentation](https://neuralsight.github.io/NeuralSight-Documentation//)
 
 <img align="centre" src="https://github.com/NeuralSight/NeuralSight_AI/blob/main/images/Logo.jpg" width="712" height="512" />
 
