@@ -22,7 +22,7 @@ This directory contains directories and python & Fastapi Scrips used to develop 
 You can find the API endpoints of the project [Here](https://backend.neuralsight.ai/docs) and alternative documentation [Here](https://backend.neuralsight.ai/redoc)
 
 > For an an indepth understanding on how to setup the project, read through the project documentation available in the link below.
-> You can find the project documentation online [Here](https://neuralsight.github.io/NeuralSight-Company-Charter/) and it's github repository [Here](https://github.com/NeuralSight/NeuralSight-Company-Charter)
+> You can find the project documentation online [Here](https://neuralsight.github.io/NeuralSight-Documentation/) and it's github repository [Here](https://github.com/NeuralSight/NeuralSight-Company-Charter)
 
 ## Table of Contents:
 * Important Resources
