@@ -10,6 +10,7 @@ class Report(Base):
     report = Column(String, nullable=True)
     inference_path = Column(String, nullable=True)
     annotation_path = Column(String, nullable=True)
+    is_deleted = Column(Boolean(), default=False)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=datetime.now)
     patient_id = Column(String, ForeignKey("patient.id"))
@@ -21,9 +22,26 @@ class Patient(Base):
     id = Column(String, primary_key=True, index=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=datetime.now)
+    is_deleted = Column(Boolean(), default=False)
     user_id = Column(Integer, ForeignKey("user.id"))
     user = relationship("User", back_populates="patient_records")
     report = relationship("Report", back_populates="patient")
+
+
+
+class DeletePatientObject(Base):
+    __tablename__ = 'deleted_patient_objects'
+    id = Column(String, primary_key=True, index=True)
+    deleted_at = Column(DateTime, server_default=func.now())
+    deleted_patient_id = Column(String, ForeignKey("patient.id"), unique=True)
+
+
+class DeleteReportObject(Base):
+    __tablename__ = 'deleted_reports_objects'
+    id = Column(String, primary_key=True, index=True)
+    deleted_at = Column(DateTime, server_default=func.now())
+    deleted_report_id = Column(String, ForeignKey("report.id"), unique=True)
+
 
 
 

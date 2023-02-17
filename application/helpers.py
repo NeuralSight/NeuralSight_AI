@@ -48,13 +48,13 @@ conf = ConnectionConfig(
 #
 
 
-def get_random_string(length, file_name):
+def get_random_string(length, id_tocheck):
     # choose from all lowercase letter
     letters = string.ascii_lowercase
     result_str = ''.join(random.choice(letters) for i in range(length))
     time_string = time.strftime("%Y%M%S")
 
-    return file_name+"_"+time_string +"_"+result_str
+    return str(id_tocheck).replace(" ", "")+"_"+time_string +"_"+result_str
 
 
 
