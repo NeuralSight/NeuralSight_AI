@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ninsight-service
+  name: ninsight-service
+  # namespace: neurallabs
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+  type: ClusterIP
+  selector:
+    app: neuralsight-ai

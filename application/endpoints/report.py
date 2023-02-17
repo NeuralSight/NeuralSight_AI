@@ -23,6 +23,7 @@ from endpoints import deps
 from helpers import get_random_string
 from helperApp import *
 import crud, model as models, schemas
+from fastapi.responses import StreamingResponse
 
 
 
@@ -62,7 +63,12 @@ current_user: models.User = Depends(deps.get_current_active_user)
                 detail="The Patient  with this Id Already  exist in the system",
             )
     # #create patient table
-    patient = crud.patient.create(db, obj_in={"id":patient_id, "user_id":current_user.id, "created_at":datetime.now(), "updated_at":datetime.now()})
+    #print("USE ID ", current_user.id)
+    #print("Created ID ", patient_id, "\n\n")
+    try:
+        patient = crud.patient.create(db, obj_in={"id":patient_id, "user_id":current_user.id, "created_at":datetime.now(), "updated_at":datetime.now()})
+    except Exception as e:
+        return {"message":f"An Error during Insertion i.e {e}!", "status":400}
 
     return {"patient":patient, "status":"OK"}
 
@@ -82,11 +88,17 @@ current_user: models.User = Depends(deps.get_current_active_user),
     if not patient:
         raise HTTPException(
             status_code=404,
-            detail="The Patient  with this Id does not exist in the system",
+            detail="The Patient  with this Id does not exist in the system Or maybe removed",
         )
 
+    if patient.is_deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="The Patient  is already deleted",
+        )
     #also check if the docktor that created the patient is the one updating
     if patient.user_id != current_user.id:
+        print(patient.user_id, current_user.id)
         raise HTTPException(
             status_code=404,
             detail="Un Authorised Access to entry you did'nt Author",
@@ -96,7 +108,7 @@ current_user: models.User = Depends(deps.get_current_active_user),
     if file.filename == '':
         return {"message":"Missing file parameter!", "status":400}
 
-    file_to_save =get_random_string(5, file.filename.split(".")[0])
+    file_to_save =get_random_string(5, patient.user_id)
     request_object_content = await file.read()
     # img_bytes = await file.read()
     uploaded_img = Image.open(io.BytesIO(request_object_content))
@@ -184,7 +196,7 @@ def get_all_patients(
     Retrieve Patients.
     """
     patients = crud.patient.get_multi(db, skip=skip, limit=limit)
-    print("Here")
+    #print("Here")
     # response.headers["Access-Control-Expose-Headers"] = "Content-Range"
     # response.headers["Content-Range"] = f"0-9/{len(patients)}"
     return patients
@@ -208,6 +220,12 @@ def read_patient_by_id(
             status_code=404,
             detail="The Patient  with this Id does not exist in the system",
         )
+    if patient.is_deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="The Patient is already deleted!",
+        )
+
     #also check if the docktor that created the patient is the one updating
     if patient.user_id != current_user.id:
         raise HTTPException(
@@ -217,8 +235,9 @@ def read_patient_by_id(
     final_res =[]
     if patient:
         for patient_report in patient.report:
-            disease = s3.get_object(Bucket='sagemaker-us-east-1-472646256118',Key=f'{patient_report.annotation_path}')['Body'].read().decode('utf-8')
-            final_res.append({'disease':disease, "details":patient_report})
+            if not patient_report.is_deleted:
+                disease = s3.get_object(Bucket='sagemaker-us-east-1-472646256118',Key=f'{patient_report.annotation_path}')['Body'].read().decode('utf-8')
+                final_res.append({'disease':disease, "details":patient_report})
     else:
         pass
     return {"patient":final_res}
@@ -232,13 +251,92 @@ def read_docters_report(
     """
     Get patients created by current dioctor.
     """
-    print("here")
     patients = crud.patient.get_by_user_id(db, user_id=current_user.id)
-
+    #"report":[r.report for r in patients]
     return {"patients":patients}
 
 
 # TODO : DELETE PATIENT/REPORT
+@router.delete("/{patient_id}")
+def delete_patient_by_id(
+    *,
+    db: Session = Depends(deps.get_db),
+    patient_id: str,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Delete a patient.
+    """
+    patient = crud.patient.get(db, id=patient_id)
+    if not patient:
+        raise HTTPException(
+            status_code=404,
+            detail="The Patient  with this Id does not exist in the system or maybe deleted!",
+        )
+
+    if patient.is_deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="The Patient is already deleted!",
+        )
+    #also check if the docktor that created the patient is the one updating
+    if patient.user_id != current_user.id:
+        raise HTTPException(
+            status_code=404,
+            detail="Un Authorised Access to entry you did'nt Author",
+        )
+    #check if it exists;
+    #save the data inot patient deleted objects
+    try:
+        patient_update = crud.patient.update(db, db_obj=patient, obj_in={"is_deleted":True})
+        if crud.patient_delete.get_by_patient(db, id=patient.id):
+            patient_deleted = crud.patient_delete.get_by_patient(db, id=patient.id)
+        else:
+            patient_deleted = crud.patient_delete.create(db, obj_in={"id":get_random_string(5, "deleted_object"), "patient_id":patient.id, "deleted_at":datetime.now()})
+    except Exception as e:
+        return {"message":f"An Error during Insertion i.e {e}!", "status":400}
+    return {"patient deleted":patient_deleted, "delete status":"OK", "message":"Patient Deleted well"}
+
+
+# TODO : DELETE PATIENT/REPORT
+@router.delete("/report/{report_id}")
+def delete_report_by_id(
+    *,
+    db: Session = Depends(deps.get_db),
+    report_id: str,
+    current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Delete a report.
+    """
+    report_instance = crud.report.get(db, id=report_id)
+    if not report_instance:
+        raise HTTPException(
+            status_code=404,
+            detail="The Report with such id does not exist in the system OR MAybe it was deleted",
+        )
+    if report_instance.is_deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="The Report is already deleted",
+        )
+    if report_instance.patient.user_id != current_user.id:
+        raise HTTPException(
+            status_code=404,
+            detail="Un Authorised Access to entry you did'nt Author",
+        )
+
+    try:
+        #save the data inot report deleted objects
+        report_update = crud.report.update(db, db_obj=report_instance, obj_in={"is_deleted":True})
+        if crud.report_delete.get_by_report(db,id=report_instance.id):
+            report_deleted = crud.report_delete.get_by_report(db,id=report_instance.id)
+        else:
+            report_deleted = crud.report_delete.create(db,obj_in={"id":get_random_string(5, "deleted_report_"), "report_id":report_instance.id, "deleted_at":datetime.now()})
+    except Exception as e:
+        return {"message":f"An Error during Insertion i.e {e}!", "status":400}
+    return {"Report deleted":report_deleted, "delete status":"OK", "message":"Report Deleted well"}
+
 
 
 @router.get("/report/{report_id}")
@@ -257,6 +355,12 @@ def get_report(
         raise HTTPException(
             status_code=404,
             detail="The Report with such id does not exist in the system",
+        )
+
+    if report_instance.is_deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="The Report was deleted from the server",
         )
     if report_instance.patient.user_id != current_user.id:
         raise HTTPException(
@@ -287,6 +391,11 @@ def update_report(
             status_code=404,
             detail="The Report with such id does not exist in the system",
         )
+    if report_instance.is_deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Report Already Deleted",
+        )
     #also check if the docktor that created the patient is the one updating
     if report_instance.patient.user_id != current_user.id:
         raise HTTPException(
@@ -298,42 +407,55 @@ def update_report(
 
 
 
-# @router.get('/file/annotation/{key}')
-# def read_annotation_from_aws(
-# *,
-# key: str ,
-# db: Session = Depends(deps.get_db),
-# current_user: models.User = Depends(deps.get_current_active_user),
-# ) -> Any:
-#     key ="Images/annotations/tb0003_20221221150357_zknhzijnoxzodho.txt"
-#     file = s3.get_object(Bucket='sagemaker-us-east-1-472646256118', Key=f'Images/annotations/{key}')
-#     content_type = file['ContentType']
-#     file_data = file['Body'].read().decode('utf-8')
-#     print(file_data)
-#
-#     return {"data":file_data}
+@router.get('/file/annotation/{key}')
+def read_annotation_from_aws(
+*,
+key: str ,
+db: Session = Depends(deps.get_db),
+current_user: models.User = Depends(deps.get_current_active_user),
+) -> Any:
+    key ="Images/annotations/tb0003_20221221150357_zknhzijnoxzodho.txt"
+    file = s3.get_object(Bucket='sagemaker-us-east-1-472646256118', Key=f'Images/annotations/{key}')
+    content_type = file['ContentType']
+    file_data = file['Body'].read().decode('utf-8')
+    print(file_data)
 
-# @router.get('/file/filer')
-# def get_filer(
-# *,
-# db: Session = Depends(deps.get_db),
+    return {"data":file_data}
+
+@router.get('/file/{img_type}/{image_id}')
+def get_images_by_identifier(
+*,
+img_type: str,
+image_id: str,
+db: Session = Depends(deps.get_db),
 # current_user: models.User = Depends(deps.get_current_active_user),
-# ) -> Any:
-#     from fastapi.responses import StreamingResponse
-#     file = s3.get_object(Bucket='sagemaker-us-east-1-472646256118', Key='Images/profile/Edwin_Screenshot from 2022-11-16 22-49-32.png')
-#     content_type = file['ContentType']
-#     file = file['Body']
-#
-#
-#     file_byte_string = file#self.s3.get_object(Bucket=bucket, Key=key)['Body'].read()
-#     # print(file_byte_string.read())
-#     file_byte_string = Image.open(BytesIO(file_byte_string.read()))
-#     filtered_image = BytesIO()
-#     file_byte_string.save(filtered_image, "png")
-#     filtered_image.seek(0)
-#
-#     return StreamingResponse(filtered_image, media_type="image/png")
-#     # return Response(file.read(), media_type=content_type)
-#     # def iterfile():
-#         # yield from file
-#     # return StreamingResponse(content=iterfile(), media_type=content_type) #{"data":file}
+) -> Any:
+
+    if img_type not in ["profile", "inference", 'annotations', "imgs"]:
+        raise HTTPException(
+                        status_code=404,
+                        detail="You must pass correct reference for image type, It must be part of this  (profile, inference, annotations, images)",
+                    )
+
+    try:
+        file = s3.get_object(Bucket='sagemaker-us-east-1-472646256118', Key=f'Images/{img_type}/{image_id}')
+    except Exception as e:
+        print("Error Occured   ", e)
+        error_msg = f"File does not exist - s3://sagemaker-us-east-1-472646256118/Images/{img_type}/{image_id}"
+        raise HTTPException(
+                        status_code=404,
+                        detail=error_msg,
+                    )
+
+    content_type = file['ContentType']
+    file = file['Body']
+
+    img_extension = image_id.split(".")[-1]
+    file_byte_string = file#self.s3.get_object(Bucket=bucket, Key=key)['Body'].read()
+    # print(file_byte_string.read())
+    file_byte_string = Image.open(BytesIO(file_byte_string.read()))
+    filtered_image = BytesIO()
+    file_byte_string.save(filtered_image, f"png")
+    filtered_image.seek(0)
+
+    return StreamingResponse(filtered_image, media_type=f"image/png")
