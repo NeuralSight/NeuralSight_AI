@@ -76,6 +76,8 @@ def create_user(
             status_code=400,
             detail="The user with this username already exists in the system.",
         )
+
+    #need to check if hospital is already created...
     user = crud.user.create(db, obj_in=user_in)
     print(f"Mails  {settings.EMAILS_ENABLED}  and {user_in.email}")
     if settings.EMAILS_ENABLED and user_in.email:
@@ -180,6 +182,7 @@ def update_userProfile(
     *,
     db: Session = Depends(deps.get_db),
     phone: str = Form(default=None),
+    full_name: str = Form(default=None),
     address: str = Form(default=None),
     location: str = Form(default=None),
     # hospital: str = Form(default=None),
@@ -223,6 +226,7 @@ def update_userProfile(
     else:
         file_uploaded_path = user.userProfile
     update_data = {
+    "full_name": full_name if full_name else user.full_name,
     "phone": phone if phone else user.phone,
     "address": address if address else user.address,
     "location": location if location else user.location,

@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: neuralsight-ai-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: neuralsight-ai
+  template:
+    metadata:
+      labels:
+        app: neuralsight-ai
+    spec:
+      containers:
+      - name: neuralsight-ai
+        image: neuralsight_ai_ninsight
+        ports:
+        - containerPort: 80
