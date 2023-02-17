@@ -26,6 +26,13 @@ from fastapi.staticfiles import StaticFiles
 from typing import Any
 
 
+# for monitoring
+from prometheus_fastapi_instrumentator import Instrumentator
+
+
+
+
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
@@ -63,6 +70,8 @@ def redirect_to_docs() -> Any:
 
 app.include_router(routers.api_router, prefix=settings.API_V1_STR)
 
+# run the prometheus_fastapi_instrumentator
+Instrumentator().instrument(app).expose(app)
 
 if __name__ == "__main__":
     uvicorn.run("main:app")

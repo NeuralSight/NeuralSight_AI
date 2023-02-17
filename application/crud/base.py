@@ -22,7 +22,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
 
     def get(self, db: Session, id: Any) -> Optional[ModelType]:
-        return db.query(self.model).filter(self.model.id == id).first()
+        try:
+            return db.query(self.model).filter(self.model.id == id).first()
+        except Exception as e:
+            return db.query(self.model).filter(self.model.id == id).first()
 
     def get_by_field(self, db: Session, field: Any) -> Optional[ModelType]:
         return db.query(self.model).filter(self.model.patient_id == field).first()
@@ -31,7 +34,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def get_multi(
         self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[ModelType]:
-        return db.query(self.model).offset(skip).limit(limit).all()
+        try:
+            return db.query(self.model).filter(self.model.is_deleted == False).offset(skip).limit(limit).all()
+        except Exception as e:
+            return db.query(self.model).offset(skip).limit(limit).all()
 
     def create(self, db: Session, *, obj_in: CreateSchemaType) -> ModelType:
         obj_in_data = jsonable_encoder(obj_in)

@@ -18,6 +18,7 @@ RUN pip3 install --upgrade pip
 RUN pip3 uninstall jwt
 RUN pip3 uninstall PyJWT
 RUN pip3 install PyJWT
+RUN pip3 install sqlalchemy-migrate
 #RUN python3 db_starter.py
 #RUN alembic upgrade 40aa33cd3fdb
 #RUN alembic upgrade e4ab6f930855
