@@ -3,6 +3,7 @@ version: '3.4'
 services:
   ninsight:
     build: .
+    restart: unless-stopped
     ports:
       - 8000:8000
     depends_on:
