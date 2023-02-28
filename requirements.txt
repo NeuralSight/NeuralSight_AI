@@ -101,7 +101,7 @@ urllib3==1.26.13
 uvicorn==0.20.0
 wandb==0.13.6
 wcwidth==0.2.5
-Werkzeug==2.2.2
+Werkzeug==2.2.3
 zipp==3.8.1
 prometheus-fastapi-instrumentator==5.9.1
 psycopg2==2.9.5
