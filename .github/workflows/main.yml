@@ -61,8 +61,18 @@ jobs:
           envkey_SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           envkey_EMAILS_FROM_EMAIL: ${{ secrets.EMAILS_FROM_EMAIL }}
           envkey_EMAILS_FROM_NAME: SENDER
+          envkey_MAIL_USERNAME: NEURALSIGHT APPLICATION
+          envkey_MAIL_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          envkey_MAIL_FROM: ${{ secrets.EMAILS_FROM_EMAIL }}
+          envkey_MAIL_PORT: 587
+          envkey_MAIL_SERVER: smtp.gmail.com
+          envkey_MAIL_FROM_NAME: SENDER
+
+
           file_name: .env
           fail_on_empty: false
+
+
 
       - name: Login to DockerHub for Nsight Account for Image Pushing
         uses: docker/login-action@v1
