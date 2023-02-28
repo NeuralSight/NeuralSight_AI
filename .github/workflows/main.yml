@@ -9,7 +9,7 @@ on:
     branches:
       - main
       - fin_endpoint
-  
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -26,60 +26,60 @@ jobs:
       - name: Check Out the code into the GithubAction
         uses: actions/checkout@v2
 
-#       - name: Create an Environment File (.env) to be used by the image
-#         uses: SpicyPizza/create-envfile@v1.3
-#         with:
-#           envkey_BACKEND_CORS_ORIGINS: ${{ secrets.BACKEND_CORS_ORIGINS }}
-#           envkey_DEBUG: false
-#           envkey_PRODUCTION: true
-#           envkey_PROJECT_NAME: NEURALSIGHT AFRICA
-#           envkey_DOMAIN: backend.neuralsight.ai
-#           envkey_SERVER_HOST: backend.neuralsight.ai
-#           envkey_SERVER_NAME: NEURALSIGHT
-#           envkey_AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
-#           envkey_AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
-#           envkey_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           envkey_AWS_DOMAIN: ${{ secrets.AWS_DOMAIN }}
-#           envkey_WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
-#           envkey_AWS_BUCKET_FOLDER: Images
-#           envkey_AWS_ANNOTATIONS_FOLDER: annotations
-#           envkey_AWS_INFERENCE_FOLDER: inference
-#           envkey_AWS_IMGS_FOLDER: imgs
-#           envkey_AWS_PROFILE_FOLDER: profile
-#           envkey_DB_NAME: ${{ secrets.DB_NAME }}
-#           envkey_DB_USER: ${{ secrets.DB_USER }}
-#           envkey_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-#           envkey_DB_PORT: 5432
-#           envkey_DB_HOST: db
-#           envkey_SECRET_KEY: ${{ secrets.SECRET_KEY }}
-#           envkey_FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
-#           envkey_FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
-#           envkey_SMTP_TLS: True
-#           envkey_SMTP_PORT: 587
-#           envkey_SMTP_HOST: smtp.gmail.com
-#           envkey_SMTP_USER: ${{ secrets.SMTP_USER }}
-#           envkey_SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-#           envkey_EMAILS_FROM_EMAIL: ${{ secrets.EMAILS_FROM_EMAIL }}
-#           envkey_EMAILS_FROM_NAME: SENDER
-#           file_name: .env
-#           fail_on_empty: false
+      - name: Create an Environment File (.env) to be used by the image
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_BACKEND_CORS_ORIGINS: ${{ secrets.BACKEND_CORS_ORIGINS }}
+          envkey_DEBUG: false
+          envkey_PRODUCTION: true
+          envkey_PROJECT_NAME: NEURALSIGHT AFRICA
+          envkey_DOMAIN: backend.neuralsight.ai
+          envkey_SERVER_HOST: backend.neuralsight.ai
+          envkey_SERVER_NAME: NEURALSIGHT
+          envkey_AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+          envkey_AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          envkey_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          envkey_AWS_DOMAIN: ${{ secrets.AWS_DOMAIN }}
+          envkey_WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+          envkey_AWS_BUCKET_FOLDER: Images
+          envkey_AWS_ANNOTATIONS_FOLDER: annotations
+          envkey_AWS_INFERENCE_FOLDER: inference
+          envkey_AWS_IMGS_FOLDER: imgs
+          envkey_AWS_PROFILE_FOLDER: profile
+          envkey_DB_NAME: ${{ secrets.DB_NAME }}
+          envkey_DB_USER: ${{ secrets.DB_USER }}
+          envkey_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          envkey_DB_PORT: 5432
+          envkey_DB_HOST: db
+          envkey_SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          envkey_FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
+          envkey_FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
+          envkey_SMTP_TLS: True
+          envkey_SMTP_PORT: 587
+          envkey_SMTP_HOST: smtp.gmail.com
+          envkey_SMTP_USER: ${{ secrets.SMTP_USER }}
+          envkey_SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          envkey_EMAILS_FROM_EMAIL: ${{ secrets.EMAILS_FROM_EMAIL }}
+          envkey_EMAILS_FROM_NAME: SENDER
+          file_name: .env
+          fail_on_empty: false
 
-#       - name: Login to DockerHub for Nsight Account for Image Pushing
-#         uses: docker/login-action@v1
-#         with:
-#           username: ${{ env.DOCKER_USERNAME }}
-#           password: ${{ env.DOCKER_PASSWORD }}
+      - name: Login to DockerHub for Nsight Account for Image Pushing
+        uses: docker/login-action@v1
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
 
 
-#       - name: Build Nsight Backend Docker image
-#         uses: docker/build-push-action@v2
-#         with:
-#           context: .
-#           push: true
-#           tags: ${{ env.DOCKER_USERNAME }}/nsightbackend:latest
+      - name: Build Nsight Backend Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ env.DOCKER_USERNAME }}/nsightbackend:latest
 
-#       - name: Push Nsight Docker image to DockerHub Nsight Account
-#         run: docker push ${{ env.DOCKER_USERNAME }}/nsightbackend:latest
+      - name: Push Nsight Docker image to DockerHub Nsight Account
+        run: docker push ${{ env.DOCKER_USERNAME }}/nsightbackend:latest
 
       - name: Running Ec2 SSH to Deploy Docker image to EC2 Automatically
         uses: appleboy/ssh-action@v0.1.8
@@ -92,7 +92,6 @@ jobs:
             echo "I'm currently at EC2 Server running deployment commands"
             cd NeuralSight_AI
             git pull origin fin_endpoint
-            sudo docker-compose -f docker-compose.yml pull 
+            sudo docker-compose -f docker-compose.yml pull
             sudo docker-compose -f docker-compose.yml up -d
             echo "Done Deployning the new Image"
-          
