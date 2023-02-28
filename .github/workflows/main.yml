@@ -73,23 +73,23 @@ jobs:
           fail_on_empty: false
 
 
+      #
+      # - name: Login to DockerHub for Nsight Account for Image Pushing
+      #   uses: docker/login-action@v1
+      #   with:
+      #     username: ${{ env.DOCKER_USERNAME }}
+      #     password: ${{ env.DOCKER_PASSWORD }}
+      #
+      #
+      # - name: Build Nsight Backend Docker image
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     context: .
+      #     push: true
+      #     tags: ${{ env.DOCKER_USERNAME }}/nsightbackend:latest
 
-      - name: Login to DockerHub for Nsight Account for Image Pushing
-        uses: docker/login-action@v1
-        with:
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ env.DOCKER_PASSWORD }}
-
-
-      - name: Build Nsight Backend Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          tags: ${{ env.DOCKER_USERNAME }}/nsightbackend:latest
-
-      - name: Push Nsight Docker image to DockerHub Nsight Account
-        run: docker push ${{ env.DOCKER_USERNAME }}/nsightbackend:latest
+      # - name: Push Nsight Docker image to DockerHub Nsight Account
+      #   run: docker push ${{ env.DOCKER_USERNAME }}/nsightbackend:latest
 
       - name: Running Ec2 SSH to Deploy Docker image to EC2 Automatically
         uses: appleboy/ssh-action@v0.1.8
