@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - fin_endpoint
   pull_request:
     branches:
-      - main      
+      - main
+      - fin_endpoint
   
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -89,7 +91,7 @@ jobs:
           script: |
             echo "I'm currently at EC2 Server running deployment commands"
             cd NeuralSight_AI &&
-            git pull origin main && 
+            git pull origin fin_endpoint && 
             sudo docker-compose pull && 
             sudo docker-compose -f docker-compose.yml up -d
             echo "Done Deployning the new Image"
