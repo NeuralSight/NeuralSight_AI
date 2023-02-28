@@ -3,11 +3,11 @@ name: Build and push Docker image for NeuralSight Backend App
 on:
   push:
     branches:
-      # - main
+      - main
       - fin_endpoint
   pull_request:
     branches:
-      # - main
+      - main
       - fin_endpoint
   
   # Allows you to run this workflow manually from the Actions tab
