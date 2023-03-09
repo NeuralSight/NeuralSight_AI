@@ -2,7 +2,8 @@ version: '3.4'
 
 services:
   ninsight:
-    image: neuralsight/nsightbackend:latest
+    build: .
+    #image: neuralsight/nsightbackend:latest
     restart: always
     ports:
       - 8000:8000
