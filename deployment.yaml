@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: neuralsight-ai-deployment
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: neuralsight-ai
@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: neuralsight-ai
-        image: neuralsight_ai_ninsight
+        image: neuralsight_ai_ninsight #neuralsight/nsightbackend:latest  #
         ports:
         - containerPort: 80
