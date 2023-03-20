@@ -1,0 +1,29 @@
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#   namespace: backend
+#   name: create-postgres-user
+# spec:
+#   template:
+#     metadata:
+#       name: create-postgres-user
+#     spec:
+#       restartPolicy: Never
+#       containers:
+#       - name: create-postgres-user
+#         image: postgres:latest
+#         env:
+#         - name: POSTGRES_DB
+#           value: xxxxxx
+#         - name: POSTGRES_USER
+#           value: xxxxxx
+#         - name: POSTGRES_PASSWORD
+#           value: xxxxxx
+#         command:
+#         - sh
+#         - -c
+#         - |
+#           echo "Creating user: postgres"
+#           psql -U postgres -c "CREATE USER xxxxxx WITH PASSWORD 'xxxxxx';"
+#           echo "Granting privileges to user: xxxxxx"
+#           psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE xxxxxx TO xxxxxx;"
