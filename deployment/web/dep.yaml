@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: website
+  labels:
+    name: website
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nsightfrontend
+  namespace: website
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nsightfrontend
+  template:
+    metadata:
+      labels:
+        app: nsightfrontend
+    spec:
+      containers:
+        - name: app
+          image: neuralsight/nsightfrontend:latest
+          ports:
+            - containerPort: 3000
+          imagePullPolicy: Always
+          env:
+            - name: NODE_ENV
+              value: "production"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi

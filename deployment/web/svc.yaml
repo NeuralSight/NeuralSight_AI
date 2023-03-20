@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nsightfrontend
+  namespace: website
+  # annotations:
+  #   service.beta.kubernetes.io/aws-load-balancer-type: external
+  #   service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    # service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+spec:
+  selector:
+    app: nsightfrontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+  type: LoadBalancer
