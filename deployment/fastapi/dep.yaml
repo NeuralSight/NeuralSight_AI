@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ninsight-backend
+  namespace: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ninsight-backend
+  template:
+    metadata:
+      labels:
+        app: ninsight-backend
+    spec:
+      containers:
+        - name: ninsight-backend
+          image:  neuralsight/nsightbackend:latest
+          ports:
+            - containerPort: 8000
+          imagePullPolicy: Always
+          env:
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_HOST
+              value: db
+            - name: DB_NAME
+              value: nsight
+            - name: DB_USER
+              value: postgres
+            - name: DB_PASSWORD
+              value: postgres
+
+          # resources:
+          #   limits:
+          #     cpu: 1000m
+          #     memory: 512Mi
+          #   requests:
+          #     cpu: 500m
+          #     memory: 256Mi
