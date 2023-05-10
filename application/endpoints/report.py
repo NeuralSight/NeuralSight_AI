@@ -54,8 +54,8 @@ import pydicom
 from io import BytesIO
 import requests
 
-ORTHANC_URL = "http://localhost:8042"
-
+ORTHANC_URL = f"{os.getenv('AWS_BUCKET_FOLDER')}"
+# http://localhost:8042
 #
 # from monai.config import print_config
 # from monai.networks.nets import UNet

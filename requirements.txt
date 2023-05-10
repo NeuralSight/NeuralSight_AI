@@ -1,3 +1,4 @@
+pydicom
 fastapi-mail==1.2.2
 fastapi
 prometheus-fastapi-instrumentator
