@@ -1,0 +1,29 @@
+version: '3.8'  # Secrets are only available since this version of Docker Compose
+services:
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: neurallabs
+      POSTGRES_PASSWORD: neurallabs
+      POSTGRES_DB: orthanc_db
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+  orthanc:
+    image: jodogne/orthanc-plugins:1.12.0
+    command: /run/secrets/
+    ports:
+      - 4242:4242
+      - 8042:8042
+    secrets:
+      - orthanc.json
+    depends_on:
+      - postgres
+    volumes:
+      - ./orthanc.json:/etc/orthanc/orthanc.json
+    environment:
+      - ORTHANC_NAME=NeuralSight ORTHANC SERVER
+secrets:
+  orthanc.json:
+    file: orthanc.json
