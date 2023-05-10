@@ -1,4 +1,4 @@
-version: '3.8'  # Secrets are only available since this version of Docker Compose
+version: '3.4'  # Secrets are only available since this version of Docker Compose
 services:
   postgres_data:
     image: postgres:latest
