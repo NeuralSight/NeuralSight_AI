@@ -1,6 +1,6 @@
 version: '3.8'  # Secrets are only available since this version of Docker Compose
 services:
-  postgres:
+  postgres_data:
     image: postgres:latest
     restart: always
     environment:
@@ -19,7 +19,7 @@ services:
     secrets:
       - orthanc.json
     depends_on:
-      - postgres
+      - postgres_data
     volumes:
       - ./orthanc.json:/etc/orthanc/orthanc.json
     environment:

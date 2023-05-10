@@ -23,7 +23,7 @@
     "Database": "orthanc_db",
     "Username": "neurallabs",
     "Password": "neurallabs",
-    "Host": "postgres",
+    "Host": "postgres_data",
     "Port": 5432
   }
 }
