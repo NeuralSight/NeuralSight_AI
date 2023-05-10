@@ -54,9 +54,11 @@ import pydicom
 from io import BytesIO
 import requests
 
-ORTHANC_URL = f"{os.getenv('AWS_BUCKET_FOLDER')}"
+ORTHANC_URL = f"{os.getenv('ORTHANC_URL')}"
 # http://localhost:8042
 #
+
+print(f"OTHANK URL   {ORTHANC_URL}")
 # from monai.config import print_config
 # from monai.networks.nets import UNet
 # from monai.losses import DiceLoss
