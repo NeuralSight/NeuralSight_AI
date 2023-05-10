@@ -1,0 +1,29 @@
+{
+  "Name": "NeuralSight ORTHANC SERVER",
+  "DicomAet": "ORTHANC",
+  "DicomPort": 4242,
+  "HttpPort": 8042,
+  "AuthenticationEnabled": true,
+  "HttpAuthEnabled": true,
+  "HttpAuthAuthentication": "Basic",
+  "RemoteAccessAllowed": true,
+  "RegisteredUsers":
+    {
+      "neurallabs": "neurallabsafrica",
+      "edwin": "edwin",
+      "steve": "steve"
+    },
+  "Plugins": [
+    "OrthancPostgreSQLIndex",
+    "OrthancWebViewer"
+  ],
+  "PostgreSQL": {
+    "EnableIndex": true,
+    "EnableStorage": true,
+    "Database": "orthanc_db",
+    "Username": "neurallabs",
+    "Password": "neurallabs",
+    "Host": "postgres",
+    "Port": 5432
+  }
+}
