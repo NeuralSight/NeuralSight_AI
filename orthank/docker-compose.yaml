@@ -9,6 +9,8 @@ services:
       POSTGRES_DB: orthanc_db
     volumes:
       - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432" # Map host port 5433 to container port 5432
 
   orthanc:
     image: jodogne/orthanc-plugins:1.12.0

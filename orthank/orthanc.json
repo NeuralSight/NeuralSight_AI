@@ -24,6 +24,6 @@
     "Username": "neurallabs",
     "Password": "neurallabs",
     "Host": "postgres_data",
-    "Port": 5432
+    "Port": "5433"
   }
 }
