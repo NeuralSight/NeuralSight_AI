@@ -7,6 +7,18 @@
   "HttpAuthEnabled": true,
   "HttpAuthAuthentication": "Basic",
   "RemoteAccessAllowed": true,
+  "RemoteAccessEnabled" : true,
+  "DicomWeb": {
+   "Enabled": true,
+   "RootWebPath": "/dicom-web/",
+   "Root" : "/dicom-web/",
+   "Enable" : true,
+   "Host" : "",
+    "StudiesMetadata" : "Full",
+    "SeriesMetadata" : "Full",
+    "PublicRoot": "/dicom-web/"
+
+  },
   "RegisteredUsers":
     {
       "neurallabs": "neurallabsafrica",
@@ -15,7 +27,8 @@
     },
   "Plugins": [
     "OrthancPostgreSQLIndex",
-    "OrthancWebViewer"
+    "OrthancWebViewer",
+    "libOrthancDicomWeb.so"
   ],
   "PostgreSQL": {
     "EnableIndex": true,
