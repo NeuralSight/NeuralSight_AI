@@ -24,6 +24,8 @@ services:
       - postgres_data
     volumes:
       - ./orthanc.json:/etc/orthanc/orthanc.json
+      - ./libOrthancDicomWeb.so:/run/secrets/libOrthancDicomWeb.so
+      - ./orthanc_data:/var/lib/orthanc/db
     environment:
       - ORTHANC_NAME=NeuralSight ORTHANC SERVER
 secrets:
