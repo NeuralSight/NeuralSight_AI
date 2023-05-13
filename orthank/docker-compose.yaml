@@ -10,7 +10,7 @@ services:
     volumes:
       - ./pgdata:/var/lib/postgresql/data
     ports:
-      - "5433:5432" # Map host port 5433 to container port 5432
+      - 5433:5432 # Map host port 5433 to container port 5432
 
   orthanc:
     image: jodogne/orthanc-plugins:1.12.0
@@ -26,7 +26,8 @@ services:
       - ./orthanc.json:/etc/orthanc/orthanc.json
       - ./libOrthancDicomWeb.so:/run/secrets/libOrthancDicomWeb.so
       - ./libOrthancWebViewer.so:/run/secrets/libOrthancWebViewer.so
-      # - ./libOrthancPostgreSQLIndex.so:/run/secrets/libOrthancPostgreSQLIndex.so
+      - ./libOrthancPostgreSQLIndex.so:/run/secrets/libOrthancPostgreSQLIndex.so
+      - ./libOrthancPostgreSQLStorage.so:/run/secrets/libOrthancPostgreSQLStorage.so
       - ./orthanc_data:/var/lib/orthanc/db
     environment:
       - ORTHANC_NAME=NeuralSight ORTHANC SERVER
@@ -38,3 +39,4 @@ secrets:
 
 # https://lsb.orthanc-server.com/plugin-postgresql/5.0/libOrthancPostgreSQLIndex.so
 # https://lsb.orthanc-server.com/plugin-webviewer/2.8/libOrthancWebViewer.so
+# https://lsb.orthanc-server.com/plugin-postgresql/5.0/libOrthancPostgreSQLStorage.so
