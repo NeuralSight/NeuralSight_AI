@@ -26,8 +26,8 @@
       "steve": "steve"
     },
   "Plugins": [
-    "OrthancPostgreSQLIndex",
-    "OrthancWebViewer",
+    "libOrthancPostgreSQLIndex.so",
+    "libOrthancWebViewer.so",
     "libOrthancDicomWeb.so"
   ],
   "PostgreSQL": {
@@ -37,6 +37,6 @@
     "Username": "neurallabs",
     "Password": "neurallabs",
     "Host": "postgres_data",
-    "Port": "5433"
+    "Port": 5433
   }
 }
