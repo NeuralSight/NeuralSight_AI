@@ -3,11 +3,11 @@
   "DicomAet": "ORTHANC",
   "DicomPort": 4242,
   "HttpPort": 8042,
-  "AuthenticationEnabled": true,
-  "HttpAuthEnabled": true,
-  "HttpAuthAuthentication": "Basic",
-  "RemoteAccessAllowed": true,
-  "RemoteAccessEnabled" : true,
+  "AuthenticationEnabled": false,
+  "HttpAuthEnabled": false,
+  "HttpAuthAuthentication": "",
+  "RemoteAccessAllowed": false,
+  "RemoteAccessEnabled" : false,
   "DicomWeb": {
    "Enabled": true,
    "RootWebPath": "/dicom-web/",
@@ -19,12 +19,6 @@
     "PublicRoot": "/dicom-web/"
 
   },
-  "RegisteredUsers":
-    {
-      "neurallabs": "neurallabsafrica",
-      "edwin": "edwin",
-      "steve": "steve"
-    },
   "Plugins": [
     "libOrthancWebViewer.so",
     "libOrthancDicomWeb.so",
