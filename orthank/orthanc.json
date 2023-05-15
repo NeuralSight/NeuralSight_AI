@@ -13,6 +13,8 @@
    "RootWebPath": "/dicom-web/",
    "Root" : "/dicom-web/",
    "Enable" : true,
+   "EnableCors": true,
+   "AllowOrigin": "*",
    "Host" : "",
     "StudiesMetadata" : "Full",
     "SeriesMetadata" : "Full",
