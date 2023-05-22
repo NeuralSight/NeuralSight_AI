@@ -6,6 +6,7 @@ asyncpg==0.27.0
 #fastapi==0.88.0
 starlette==0.21.0
 aiosmtplib==1.1.7
+ultralytics
 anyio==3.6.2
 asttokens==2.2.1
 backcall==0.2.0
