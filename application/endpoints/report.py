@@ -53,7 +53,7 @@ import tempfile
 import pydicom
 from io import BytesIO
 import requests
-
+from pydicom.encaps import encapsulate
 ORTHANC_URL = f"{os.getenv('ORTHANC_URL')}"
 # http://localhost:8042
 #
@@ -140,6 +140,8 @@ def predict_dicom_chest(model, input_bytes):
     #convert to 32 bits
     img = dicom.pixel_array.astype(np.float32)
 
+    #print the array shape
+    print(f"Array Shape is  {img.shape}")
     results = model(img)
     return results, dicom
 
@@ -180,6 +182,28 @@ password: str = Form()
         # Send DICOM file to Orthanc
         url = f'{ORTHANC_URL}/instances'
         files = {'file': (file.filename, file_bytes, 'application/dicom')}
+
+        #we need to change some params..
+        dicom_img = pydicom.dcmread(BytesIO(file_bytes))
+        # Generate UIDs if they are missing
+        if not dicom_img.SeriesInstanceUID:
+            dicom_img.SeriesInstanceUID = pydicom.uid.generate_uid()
+
+        if not dicom_img.SOPInstanceUID:
+            dicom_img.SOPInstanceUID = pydicom.uid.generate_uid()
+
+        if not dicom_img.StudyInstanceUID:
+            dicom_img.StudyInstanceUID = pydicom.uid.generate_uid()
+
+
+        # write the DICOM file to a BytesIO object
+        buffer = BytesIO()
+        pydicom.dcmwrite(buffer, dicom_img)
+        buffer.seek(0)
+
+        # get the contents of the BytesIO object as bytes
+        file_bytes = buffer.read()
+
         response1 = requests.post(url, data=file_bytes, auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
         print("Current Status code:   ",response1.status_code)
         if response1.status_code == 401:
@@ -202,7 +226,9 @@ password: str = Form()
 
     #
     # # Create a new DICOM file with the results
+    print(f"Total Number of Images are  {len(res.ims)}")
     dicom_data.PixelData = res.ims[0].tobytes()
+    print(f"Predicted Shape is {res.ims[0].shape}")
     dicom_data.BitsAllocated = 16
     dicom_data.BitsStored = 16
     dicom_data.HighBit = 15
@@ -214,6 +240,12 @@ password: str = Form()
 
     dicom_data.SOPInstanceUID = pydicom.uid.generate_uid()
     dicom_data.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
+
+    # Check if Pixel Data is compressed and encapsulate if necessary
+    if dicom_data.file_meta.TransferSyntaxUID.is_compressed:
+        encapsulated_data = encapsulate([dicom_data.PixelData])
+        dicom_data.PixelData = encapsulated_data
+
 
     # write the DICOM file to a BytesIO object
     buffer = BytesIO()
