@@ -146,6 +146,14 @@ def predict_dicom_chest(model, input_bytes):
     return results, dicom
 
 
+
+@router.post("/authorise")
+async def request_handler():
+    answer = {
+        "granted": True  # Forbid access
+    }
+    return answer
+
 @router.post("/dicom/instances")
 def fetch_dicom_images(
 username: str = Form(),
