@@ -8,6 +8,7 @@
   "HttpAuthAuthentication": "Basic",
   "RemoteAccessAllowed": true,
   "RemoteAccessEnabled" : true,
+  "OrthancExplorerEnabled": true,
   "DicomWeb": {
    "Enabled": true,
    "RootWebPath": "/dicom-web/",
@@ -21,6 +22,8 @@
     "PublicRoot": "/dicom-web/"
 
   },
+  "PythonScript": "main.py",
+  "PythonVerbose" : true,
   "RegisteredUsers":
     {
       "neurallabs": "neurallabsafrica",
