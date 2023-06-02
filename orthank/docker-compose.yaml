@@ -1,0 +1,50 @@
+version: '3.4'  # Secrets are only available since this version of Docker Compose
+services:
+  postgres_data:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: neurallabs
+      POSTGRES_PASSWORD: neurallabs
+      POSTGRES_DB: orthanc_db
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - 5433:5432 # Map host port 5433 to container port 5432
+
+  orthanc:
+    image: jodogne/orthanc-python:1.12.0 #jodogne/orthanc-plugins:1.12.0
+    command: /run/secrets/
+    ports:
+      - 4242:4242
+      - 8042:8042
+    secrets:
+      - orthanc.json
+    depends_on:
+      - postgres_data
+    volumes:
+      - ./main.py:/run/secrets/main.py
+      - ./orthanc.json:/etc/orthanc/orthanc.json
+      - ./libOrthancDicomWeb.so:/run/secrets/libOrthancDicomWeb.so
+      - ./libOrthancWebViewer.so:/run/secrets/libOrthancWebViewer.so
+      - ./libOrthancPostgreSQLIndex.so:/run/secrets/libOrthancPostgreSQLIndex.so
+      - ./libOrthancPostgreSQLStorage.so:/run/secrets/libOrthancPostgreSQLStorage.so
+      - ./orthanc_data:/var/lib/orthanc/db
+    environment:
+      - ORTHANC_NAME=NeuralSight ORTHANC SERVER
+      - VERBOSE_ENABLED=true
+      - VERBOSE_STARTUP=true
+      - ORTHANC_PYTHON_SCRIPT=main.py
+      - ORTHANC_PYTHON_VERBOSE=true
+
+secrets:
+  orthanc.json:
+    file: orthanc.json
+
+
+
+
+
+# https://lsb.orthanc-server.com/plugin-postgresql/5.0/libOrthancPostgreSQLIndex.so
+# https://lsb.orthanc-server.com/plugin-webviewer/2.8/libOrthancWebViewer.so
+# https://lsb.orthanc-server.com/plugin-postgresql/5.0/libOrthancPostgreSQLStorage.so

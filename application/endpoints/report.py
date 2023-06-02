@@ -31,12 +31,12 @@ from fastapi.responses import StreamingResponse
 load_dotenv()
 
 # Model Loading
-import wandb
-run = wandb.init()
-artifact = run.use_artifact('stephenkamau/YOLOv5/run_eoi3j9y3_model:v0', type='model')
-artifact_dir = artifact.download()
+# import wandb
+# run = wandb.init()
+# artifact = run.use_artifact('stephenkamau/YOLOv5/run_eoi3j9y3_model:v0', type='model')
+# artifact_dir = artifact.download()
 
-# artifact_dir = "./endpoints"
+artifact_dir = "./endpoints"
 # print("artifact Dir: ",artifact_dir, os.path.isfile("./endpoints/best.pt"))
 #
 # # load model
@@ -48,6 +48,236 @@ model = torch.hub.load('ultralytics/yolov5', 'custom', path=f"{artifact_dir}/bes
 
 router = APIRouter()
 
+
+import tempfile
+import pydicom
+from io import BytesIO
+import requests
+from pydicom.encaps import encapsulate
+ORTHANC_URL = f"{os.getenv('ORTHANC_URL')}"
+# http://localhost:8042
+#
+
+print(f"OTHANK URL   {ORTHANC_URL}")
+# from monai.config import print_config
+# from monai.networks.nets import UNet
+# from monai.losses import DiceLoss
+# from monai.transforms import (
+#     LoadImage,
+#     AddChannel,
+#     Resize,
+#     CropForeground,
+#     ToTensor,
+# )
+# from monai.transforms import LoadImaged, AddChanneld, ToTensord, Resized, Compose, EnsureChannelFirstd
+#
+#
+# DEVICE = "cpu"
+# MODEL_PATH = "./endpoints/Best_model_Epoch_.pth"
+#
+# # TRANSFORMS = [
+# #     LoadImage(image_only=True),
+# #     AddChannel(),
+# #     Resize((192, 192, 16)),
+# #     CropForeground(),
+# #     ToTensor(),
+# # ]
+#
+# TRANSFORMS = Compose(
+#     [
+#         LoadImage(image_only=True),
+#         AddChannel(),
+#         Resize((192, 192, 16)),
+#         CropForeground(),
+#         ToTensor(),
+#     ]
+# )
+#
+# # Load the pre-trained model
+# model1 = UNet(
+#     spatial_dims=3,
+#     in_channels=1,
+#     out_channels=2,
+#     channels=(16, 32, 64, 128, 256),
+#     strides=(2, 2, 2, 2),
+#     num_res_units=2,
+#     norm="batch",
+# ).to(DEVICE)
+#
+# model1.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+#
+# # Define the loss function and optimizer
+# loss_fn = DiceLoss(to_onehot_y=True, softmax=True)
+# optimizer = torch.optim.Adam(model1.parameters(), lr=1e-4)
+#
+#
+# @router.post("/prostate_segmentation")
+# async def prostate_segmentation(file: UploadFile = File(...)):
+#     file_bytes = await file.read()
+#     image_tensor, _ = TRANSFORMS(file_bytes)
+#     image_tensor = image_tensor.to(DEVICE)
+#
+#     # Run inference on the image
+#     with torch.no_grad():
+#         model1.eval()
+#         logits = model(image_tensor.unsqueeze(0))
+#         prediction = torch.argmax(logits, dim=1)
+#
+#     # Save the segmentation mask to a folder with id 12345
+#     os.makedirs("12345", exist_ok=True)
+#     save_path = os.path.join("12345", file.filename)
+#     torch.save(prediction, save_path)
+#
+#     return {"filename": file.filename, "save_path": save_path}
+
+
+def predict_dicom_chest(model, input_bytes):
+    """
+    Uses the model to predicted results of a dicom image
+    """
+
+    dicom = pydicom.dcmread(BytesIO(input_bytes))
+    #convert to 32 bits
+    img = dicom.pixel_array.astype(np.float32)
+
+    #print the array shape
+    print(f"Array Shape is  {img.shape}")
+    results = model(img)
+    return results, dicom
+
+
+
+@router.post("/authorise")
+async def request_handler():
+    answer = {
+        "granted": True  # Forbid access
+    }
+    return answer
+
+@router.post("/dicom/instances")
+def fetch_dicom_images(
+username: str = Form(),
+password: str = Form()
+):
+    url = f'{ORTHANC_URL}/instances'
+    response = requests.get(url,auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
+
+    if response.status_code == 401:
+        raise HTTPException(
+            status_code=401,
+            detail="Please Provide correct credentials. Not Authorised to access this service",
+        )
+    if response.status_code == 200:
+        return {"instance_ids":response.json()}
+    else:
+        print(response.text)
+        return {"error": "Failed to fetch DICOM images"}
+
+
+@router.post("/dicom/pred")
+async def prostate_segmentation(
+file: UploadFile = File(...),
+username: str = Form(),
+password: str = Form()
+# current_user: models.User = Depends(deps.get_current_active_user)
+):
+    # Read the uploaded DICOM file
+    file_bytes = await file.read()
+
+
+    try:
+        #get the image inot orthanc
+        # Send DICOM file to Orthanc
+        url = f'{ORTHANC_URL}/instances'
+        files = {'file': (file.filename, file_bytes, 'application/dicom')}
+
+        #we need to change some params..
+        dicom_img = pydicom.dcmread(BytesIO(file_bytes))
+        # Generate UIDs if they are missing
+        if not dicom_img.SeriesInstanceUID:
+            dicom_img.SeriesInstanceUID = pydicom.uid.generate_uid()
+
+        if not dicom_img.SOPInstanceUID:
+            dicom_img.SOPInstanceUID = pydicom.uid.generate_uid()
+
+        if not dicom_img.StudyInstanceUID:
+            dicom_img.StudyInstanceUID = pydicom.uid.generate_uid()
+
+
+        # write the DICOM file to a BytesIO object
+        buffer = BytesIO()
+        pydicom.dcmwrite(buffer, dicom_img)
+        buffer.seek(0)
+
+        # get the contents of the BytesIO object as bytes
+        file_bytes = buffer.read()
+
+        response1 = requests.post(url, data=file_bytes, auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
+        print("Current Status code:   ",response1.status_code)
+        if response1.status_code == 401:
+            return HTTPException(
+                status_code=401,
+                detail="Please Provide correct credentials. Not Authorised to access this service",
+            )
+        if response1.status_code != 200:
+            return {"error": f"Error sending file to Orthanc: {response1.content}"}
+        else:
+            print(f"Results is   {response1.json()}")
+    except Exception as e:
+        return {"error": f"Error sending file to Orthanc: {e}"}
+
+
+
+    res, dicom_data = predict_dicom_chest(model, file_bytes)
+
+
+
+    #
+    # # Create a new DICOM file with the results
+    print(f"Total Number of Images are  {len(res.ims)}")
+    dicom_data.PixelData = res.ims[0].tobytes()
+    print(f"Predicted Shape is {res.ims[0].shape}")
+    dicom_data.BitsAllocated = 16
+    dicom_data.BitsStored = 16
+    dicom_data.HighBit = 15
+
+    patient_name_str = str(dicom_data.PatientName)
+    new_patient_name_str = patient_name_str + "_PREDICTED"
+    new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
+    dicom_data.PatientName = new_patient_name
+
+    dicom_data.SOPInstanceUID = pydicom.uid.generate_uid()
+    dicom_data.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
+
+    # Check if Pixel Data is compressed and encapsulate if necessary
+    if dicom_data.file_meta.TransferSyntaxUID.is_compressed:
+        encapsulated_data = encapsulate([dicom_data.PixelData])
+        dicom_data.PixelData = encapsulated_data
+
+
+    # write the DICOM file to a BytesIO object
+    buffer = BytesIO()
+    pydicom.dcmwrite(buffer, dicom_data)
+    buffer.seek(0)
+
+    # get the contents of the BytesIO object as bytes
+    file_bytes = buffer.read()
+    #save back the results
+    files = {'file': ("preds_"+file.filename, file_bytes, 'application/dicom')}
+    response2 = requests.post(url, data=file_bytes, auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
+    print("Preds Status code:   ",response2.status_code)
+    if response2.status_code == 401:
+        return HTTPException(
+            status_code=401,
+            detail="Please Provide correct credentials. Not Authorised to access this service",
+        )
+    if response2.status_code != 200:
+        print("An issue,  ",response2.text)
+        return {"error": f"Error sending file to Orthancqq: {response2.content}"}
+    else:
+        print(f"Preds is  {response1.json()}")
+
+    return {"uploaded_details": response1.json(), "predicted_details": response2.json(), "results":res.pred}
 
 
 @router.post("/")
@@ -71,6 +301,9 @@ current_user: models.User = Depends(deps.get_current_active_user)
         return {"message":f"An Error during Insertion i.e {e}!", "status":400}
 
     return {"patient":patient, "status":"OK"}
+
+
+
 
 
 # create report endpoint
