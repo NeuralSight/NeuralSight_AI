@@ -1,49 +1,98 @@
 {
-  "Name": "NeuralSight ORTHANC SERVER",
-  "DicomAet": "ORTHANC",
-  "DicomPort": 4242,
-  "HttpPort": 8042,
-  "AuthenticationEnabled": true,
-  "HttpAuthEnabled": true,
-  "HttpAuthAuthentication": "Basic",
-  "RemoteAccessAllowed": true,
-  "RemoteAccessEnabled" : true,
-  "OrthancExplorerEnabled": true,
-  "DicomWeb": {
-   "Enabled": true,
-   "RootWebPath": "/dicom-web/",
-   "Root" : "/dicom-web/",
-   "Enable" : true,
-   "EnableCors": true,
-   "AllowOrigin": "*",
-   "Host" : "",
-    "StudiesMetadata" : "Full",
-    "SeriesMetadata" : "Full",
-    "PublicRoot": "/dicom-web/"
-
-  },
-  "PythonScript": "main.py",
-  "PythonVerbose" : true,
-  "RegisteredUsers":
-    {
-      "neurallabs": "neurallabsafrica",
-      "edwin": "edwin",
-      "steve": "steve"
-    },
+  "Name": "Orthanc inside Docker",
+  "StorageDirectory": "/var/lib/orthanc/db",
+  "IndexDirectory": "/var/lib/orthanc/db",
+  "StorageCompression": false,
+  "MaximumStorageSize": 0,
+  "MaximumPatientCount": 0,
+  "LuaScripts": [],
   "Plugins": [
     "libOrthancWebViewer.so",
     "libOrthancDicomWeb.so",
     "libOrthancPostgreSQLIndex.so",
     "libOrthancPostgreSQLStorage.so"
   ],
-  "PostgreSQL": {
-    "EnableStorage": true,
-    "EnableIndex": true,
-    "Database": "orthanc_db",
-    "Username": "neurallabs",
-    "Password": "neurallabs",
-    "Host": "postgres_data",
-    "Port": 5432
+
+
+
+  "ConcurrentJobs": 2,
+  "HttpServerEnabled": true,
+  "HttpPort": 8042,
+  "HttpDescribeErrors": true,
+  "HttpCompressionEnabled": true,
+  "DicomServerEnabled": true,
+  "DicomAet": "ORTHANC",
+  "DicomCheckCalledAet": false,
+  "DicomPort": 4242,
+  "DefaultEncoding": "Latin1",
+  "DeflatedTransferSyntaxAccepted": true,
+  "JpegTransferSyntaxAccepted": true,
+  "Jpeg2000TransferSyntaxAccepted": true,
+  "JpegLosslessTransferSyntaxAccepted": true,
+  "JpipTransferSyntaxAccepted": true,
+  "Mpeg2TransferSyntaxAccepted": true,
+  "RleTransferSyntaxAccepted": true,
+  "UnknownSopClassAccepted": false,
+  "DicomScpTimeout": 30,
+
+  "RemoteAccessAllowed": true,
+  "SslEnabled": false,
+  "SslCertificate": "certificate.pem",
+  "AuthenticationEnabled": false,
+  "RegisteredUsers": {
+    "test": "test"
   },
-  "StorageArea" : "/var/lib/orthanc/db"
+  "DicomModalities": {},
+  "DicomModalitiesInDatabase": false,
+  "DicomAlwaysAllowEcho": true,
+  "DicomAlwaysAllowStore": true,
+  "DicomCheckModalityHost": false,
+  "DicomScuTimeout": 10,
+  "OrthancPeers": {},
+  "OrthancPeersInDatabase": false,
+  "HttpProxy": "",
+
+  "HttpVerbose": true,
+
+  "HttpTimeout": 10,
+  "HttpsVerifyPeers": true,
+  "HttpsCACertificates": "",
+  "UserMetadata": {},
+  "UserContentType": {},
+  "StableAge": 60,
+  "StrictAetComparison": false,
+  "StoreMD5ForAttachments": true,
+  "LimitFindResults": 0,
+  "LimitFindInstances": 0,
+  "LimitJobs": 10,
+  "LogExportedResources": false,
+  "KeepAlive": true,
+  "TcpNoDelay": true,
+  "HttpThreadsCount": 50,
+  "StoreDicom": true,
+  "DicomAssociationCloseDelay": 5,
+  "QueryRetrieveSize": 10,
+  "CaseSensitivePN": false,
+  "LoadPrivateDictionary": true,
+  "Dictionary": {},
+  "SynchronousCMove": true,
+  "JobsHistorySize": 10,
+  "SaveJobs": true,
+  "OverwriteInstances": false,
+  "MediaArchiveSize": 1,
+  "StorageAccessOnFind": "Always",
+  "MetricsEnabled": true,
+
+  "DicomWeb": {
+    "Enable": true,
+    "Root": "/dicom-web/",
+    "EnableWado": true,
+    "WadoRoot": "/wado",
+    "Host": "127.0.0.1",
+    "Ssl": false,
+    "StowMaxInstances": 10,
+    "StowMaxSize": 10,
+    "QidoCaseSensitive": false
+  }
+
 }
