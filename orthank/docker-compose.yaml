@@ -17,7 +17,7 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
     ports:
-      - '80:80' #ngnix proxy
+      - '9042:9042' #ngnix proxy
     depends_on:
       - orthanc
 
