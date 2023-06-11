@@ -12,6 +12,15 @@ services:
     ports:
       - 5433:5432 # Map host port 5433 to container port 5432
 
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - '80:80' #ngnix proxy
+    depends_on:
+      - orthanc
+
   orthanc:
     image: jodogne/orthanc-python:1.12.0 #jodogne/orthanc-plugins:1.12.0
     command: /run/secrets/
@@ -42,6 +51,57 @@ secrets:
     file: orthanc.json
 
 
+# version: '3.5'
+#
+# services:
+#   orthanc:
+#     image: jodogne/orthanc-plugins:1.5.7
+#     hostname: orthanc
+#     volumes:
+#       # Config
+#       - ./orthanc.json:/etc/orthanc/orthanc.json:ro
+#       # Persist data
+#       - ./volumes/orthanc-db/:/var/lib/postgresql/data
+#       - ./libOrthancDicomWeb.so:/etc/orthanc/libOrthancDicomWeb.so
+#       - ./libOrthancWebViewer.so:/etc/orthanc/libOrthancWebViewer.so
+#       - ./libOrthancPostgreSQLIndex.so:/etc/orthanc/libOrthancPostgreSQLIndex.so
+#       - ./libOrthancPostgreSQLStorage.so:/etc/orthanc/libOrthancPostgreSQLStorage.so
+#
+#
+#     environment:
+#       - ORTHANC_NAME=NeuralSight ORTHANC SERVER
+#       - VERBOSE_ENABLED=true
+#       - VERBOSE_STARTUP=true
+#       - ORTHANC_PYTHON_SCRIPT=main.py
+#       - ORTHANC_PYTHON_VERBOSE=true
+#
+#     ports:
+#       - '4242:4242' # DICOM
+#       - '8042:8042' # Web
+#     restart: unless-stopped
+#
+#   nginx:
+#     image: nginx:latest
+#     volumes:
+#       - ./nginx.conf:/etc/nginx/nginx.conf
+#     ports:
+#       - '80:80' #ngnix proxy
+#     depends_on:
+#       - orthanc
+#
+#
+#   postgres_data:
+#     image: postgres:latest
+#     restart: always
+#     environment:
+#       POSTGRES_USER: neurallabs
+#       POSTGRES_PASSWORD: neurallabs
+#       POSTGRES_DB: orthanc_db
+#     volumes:
+#       - ./pgdata:/var/lib/postgresql/data
+#     ports:
+#       - 5433:5432 # Map host port 5433 to container port 5432
+#
 
 
 
