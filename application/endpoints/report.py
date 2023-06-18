@@ -43,6 +43,7 @@ artifact_dir = "./endpoints"
 # print("artifact Dir: ",artifact_dir, os.path.isfile("./endpoints/best.pt"))
 #
 # # load model
+torch.hub._validate_not_a_forked_repo=lambda a,b,c: True
 model = torch.hub.load('ultralytics/yolov5', 'custom', path=f"{artifact_dir}/best.pt", force_reload=True)
 
 
