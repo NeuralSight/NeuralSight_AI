@@ -24,6 +24,9 @@ from helpers import get_random_string
 from helperApp import *
 import crud, model as models, schemas
 from fastapi.responses import StreamingResponse
+from pydicom.uid import ExplicitVRLittleEndian
+
+
 
 
 
@@ -40,6 +43,7 @@ artifact_dir = "./endpoints"
 # print("artifact Dir: ",artifact_dir, os.path.isfile("./endpoints/best.pt"))
 #
 # # load model
+torch.hub._validate_not_a_forked_repo=lambda a,b,c: True
 model = torch.hub.load('ultralytics/yolov5', 'custom', path=f"{artifact_dir}/best.pt", force_reload=True)
 
 
@@ -131,19 +135,90 @@ print(f"OTHANK URL   {ORTHANC_URL}")
 #     return {"filename": file.filename, "save_path": save_path}
 
 
+
+def modify_dicom_metadata(input_file_path, new_metadata):
+    # Read the DICOM file
+    dicom_data = pydicom.dcmread(input_file_path)
+    patient_id = str(pydicom.uid.generate_uid())
+
+    # Modify the metadata
+    for tag, value in new_metadata.items():
+        if tag in dicom_data:
+            dicom_data[tag].value = value
+        else:
+            pass
+            # element = pydicom.DataElement(tag, dicom_data.file_meta[tag].VR, value)
+            # dicom_data.add(element)
+
+    # Generate unique identifiers for SOPInstanceUID, PatientID, and StudyID
+
+    patient_name_str = str(dicom_data.PatientName)
+    new_patient_name_str = patient_name_str + "_PREDICTED"
+    new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
+    dicom_data.PatientName = new_patient_name
+    dicom_data.PatientID = f"{patient_id}_predicted"
+    dicom_data.SOPInstanceUID = pydicom.uid.generate_uid()
+    dicom_data.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
+    dicom_data.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
+    dicom_data.PatientID = pydicom.uid.generate_uid()
+    dicom_data.StudyID = pydicom.uid.generate_uid()
+    dicom_data.StudyInstanceUID = pydicom.uid.generate_uid()
+    dicom_data.SeriesInstanceUID = pydicom.uid.generate_uid()
+    # dicom_data.ParentPatient = pydicom.uid.generate_uid()
+    # dicom_data.ParentStudy = pydicom.uid.generate_uid()
+    # dicom_data.ParentSeries = pydicom.uid.generate_uid()
+    # Generate UIDs if they are missing
+    return dicom_data
+
+
+def predict_png_image(request_object_content):
+    patient_id = str(pydicom.uid.generate_uid())
+    uploaded_img = Image.open(io.BytesIO(request_object_content))
+    results = model(uploaded_img, size=640)
+
+    annotations_image = []
+    results.render()
+
+    dicom_data = modify_dicom_metadata("ID_00528aa0e.dcm",{'PatientName': '','PatientAge': '','StudyDescription': 'Created',})
+
+
+    dicom_data.Rows = results.ims[0].shape[0]
+    dicom_data.Columns = results.ims[0].shape[1]
+    dicom_data.PhotometricInterpretation = "MONOCHROME2"
+    cv2.imwrite("let.png", results.ims[0])
+    dicom_data.PixelData = np.array(Image.open("let.png").convert("L")).tobytes()
+    # print(dicom_data.pixel_array)
+
+    # dicom_data.PixelData =cv2.imencode('.png', results.ims[0])[1].tobytes() #results.ims[0].tobytes()
+    # patient_name_str =  "Created_instance"
+    # new_patient_name_str = patient_name_str + "_PREDICTED"
+    # new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
+    # dicom_data.PatientName = new_patient_name
+    # dicom_data.PatientID = f"{str(pydicom.uid.generate_uid())}_predicted"
+    # file_meta = pydicom.Dataset()
+    # sop_instance_uid = pydicom.uid.generate_uid()
+    # Set the SOP Instance UID in the dataset
+    # dicom_data.SOPInstanceUID = sop_instance_uid
+    # file_meta.MediaStorageSOPInstanceUID = dicom_data.SOPInstanceUID
+    # file_meta.TransferSyntaxUID = pydicom.uid.ExplicitVRLittleEndian
+    # Set the file meta information in the dataset
+    # dicom_data.file_meta = file_meta
+
+    predict_results = {"name": results.names, "preds":results.pred[0].tolist()}
+
+    return dicom_data, predict_results
+
+
 def predict_dicom_chest(model, input_bytes):
     """
     Uses the model to predicted results of a dicom image
     """
-
     dicom = pydicom.dcmread(BytesIO(input_bytes))
-    #convert to 32 bits
-    img = dicom.pixel_array.astype(np.float32)
-
-    #print the array shape
+    img = dicom.pixel_array.astype(np.float64)
     print(f"Array Shape is  {img.shape}")
-    results = model(img)
+    results = model(img, size=640)
     return results, dicom
+
 
 
 
@@ -182,78 +257,93 @@ password: str = Form()
 # current_user: models.User = Depends(deps.get_current_active_user)
 ):
     # Read the uploaded DICOM file
+    url = f'{ORTHANC_URL}/instances'
     file_bytes = await file.read()
-
-
+    response1 ={}
+    patient_id = str(pydicom.uid.generate_uid())
     try:
-        #get the image inot orthanc
-        # Send DICOM file to Orthanc
-        url = f'{ORTHANC_URL}/instances'
-        files = {'file': (file.filename, file_bytes, 'application/dicom')}
+        # Check if the file is in DICOM format
+        file_type =file.content_type
+        if file_type == "image/jpeg" or file_type == "image/png":
+            is_dicom = False
+            print(f"We go here")
+            final_dicom, res =  predict_png_image(file_bytes)
+            buffer = BytesIO()
+            pydicom.dcmwrite(buffer, final_dicom)
+            buffer.seek(0)
 
-        #we need to change some params..
-        dicom_img = pydicom.dcmread(BytesIO(file_bytes))
-        # Generate UIDs if they are missing
-        if not dicom_img.SeriesInstanceUID:
-            dicom_img.SeriesInstanceUID = pydicom.uid.generate_uid()
+            # get the contents of the BytesIO object as bytes
+            file_bytes = buffer.read()
+            #save back the results
+            response2 = requests.post(url, data=file_bytes, auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
+            print("Preds Status code:   ",response2.status_code)
+            if response2.status_code == 401:
+                return HTTPException(
+                    status_code=401,
+                    detail="Please Provide correct credentials. Not Authorised to access this service",
+                )
+            if response2.status_code != 200:
+                print("An issue,  ",response2.text)
+                return {"error": f"Error sending file to Orthancqq: {response2.content}"}
+            return {"uploaded_details": {}, "predicted_details": response2.json(), "results":res}
 
-        if not dicom_img.SOPInstanceUID:
-            dicom_img.SOPInstanceUID = pydicom.uid.generate_uid()
+        elif file_type == "application/dicom":
+            is_dicom = True
+            dicom_img = pydicom.dcmread(BytesIO(file_bytes))
+            dicom_img.PatientID = patient_id
+            # Generate UIDs if they are missing
+            if not dicom_img.SeriesInstanceUID:
+                dicom_img.SeriesInstanceUID = pydicom.uid.generate_uid()
+            if not dicom_img.SOPInstanceUID:
+                dicom_img.SOPInstanceUID = pydicom.uid.generate_uid()
+            if not dicom_img.StudyInstanceUID:
+                dicom_img.StudyInstanceUID = pydicom.uid.generate_uid()
+            # write the DICOM file to a BytesIO object
+            buffer = BytesIO()
+            pydicom.dcmwrite(buffer, dicom_img)
+            buffer.seek(0)
+            file_bytes = buffer.read()
 
-        if not dicom_img.StudyInstanceUID:
-            dicom_img.StudyInstanceUID = pydicom.uid.generate_uid()
-
-
-        # write the DICOM file to a BytesIO object
-        buffer = BytesIO()
-        pydicom.dcmwrite(buffer, dicom_img)
-        buffer.seek(0)
-
-        # get the contents of the BytesIO object as bytes
-        file_bytes = buffer.read()
-
-        response1 = requests.post(url, data=file_bytes, auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
-        print("Current Status code:   ",response1.status_code)
-        if response1.status_code == 401:
-            return HTTPException(
-                status_code=401,
-                detail="Please Provide correct credentials. Not Authorised to access this service",
-            )
-        if response1.status_code != 200:
-            return {"error": f"Error sending file to Orthanc: {response1.content}"}
+            response1 = requests.post(url, data=file_bytes, auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
+            print("Current Status code:   ",response1.status_code)
+            # print(dicom_img.pixel_array)
+            if response1.status_code == 401:
+                return HTTPException(
+                    status_code=401,
+                    detail="Please Provide correct credentials. Not Authorised to access this service",
+                )
+            if response1.status_code != 200:
+                return {"error": f"Error sending file to Orthanc: {response1.content}"}
+            else:
+                print(f"Results is   {response1.json()}")
         else:
-            print(f"Results is   {response1.json()}")
+            return {"error": f"Error: Only png, Jpeg and dicom file types are allowed..."}
+        print("Uploaded File Type:", file_type)
+
     except Exception as e:
         return {"error": f"Error sending file to Orthanc: {e}"}
 
-
-
     res, dicom_data = predict_dicom_chest(model, file_bytes)
-
-
-
+    res.render()
     #
     # # Create a new DICOM file with the results
     print(f"Total Number of Images are  {len(res.ims)}")
-    dicom_data.PixelData = res.ims[0].tobytes()
-    print(f"Predicted Shape is {res.ims[0].shape}")
-    dicom_data.BitsAllocated = 16
-    dicom_data.BitsStored = 16
-    dicom_data.HighBit = 15
+    # dicom_data.BitsAllocated = 16
+    # dicom_data.BitsStored = 16
+    # dicom_data.HighBit = 15
 
-    patient_name_str = str(dicom_data.PatientName)
+
+    patient_name_str = str(dicom_data.PatientName) if is_dicom else ""
     new_patient_name_str = patient_name_str + "_PREDICTED"
     new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
     dicom_data.PatientName = new_patient_name
-
+    dicom_data.PatientID = f"{patient_id}_predicted"
     dicom_data.SOPInstanceUID = pydicom.uid.generate_uid()
     dicom_data.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
-
-    # Check if Pixel Data is compressed and encapsulate if necessary
-    if dicom_data.file_meta.TransferSyntaxUID.is_compressed:
-        encapsulated_data = encapsulate([dicom_data.PixelData])
-        dicom_data.PixelData = encapsulated_data
-
+    dicom_data.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
+    cv2.imwrite("lets.png", res.ims[0])
+    dicom_data.PixelData = np.array(Image.open("lets.png").convert("L")).tobytes()  #res.ims[0].tobytes() #cv2.imencode('.png', res.ims[0])[1].tobytes() #res.ims[0].tobytes()
+    print(f"Predicted Shape is {res.ims[0].shape}")
 
     # write the DICOM file to a BytesIO object
     buffer = BytesIO()
@@ -275,9 +365,10 @@ password: str = Form()
         print("An issue,  ",response2.text)
         return {"error": f"Error sending file to Orthancqq: {response2.content}"}
     else:
-        print(f"Preds is  {response1.json()}")
+        if is_dicom:
+            print(f"Preds is  {response1.json()}")
 
-    return {"uploaded_details": response1.json(), "predicted_details": response2.json(), "results":res.pred}
+    return {"uploaded_details": response1.json() if is_dicom else [], "predicted_details": response2.json(), "results":{"name": res.names, "preds":res.pred[0].tolist()}}
 
 
 @router.post("/")
