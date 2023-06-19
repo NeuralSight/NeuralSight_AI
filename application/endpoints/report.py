@@ -214,7 +214,7 @@ def predict_dicom_chest(model, input_bytes):
     Uses the model to predicted results of a dicom image
     """
     dicom = pydicom.dcmread(BytesIO(input_bytes))
-    img = dicom.pixel_array.astype(np.float64)
+    img = dicom.pixel_array.astype(np.float32)
     print(f"Array Shape is  {img.shape}")
     results = model(img, size=640)
     return results, dicom
@@ -331,6 +331,7 @@ password: str = Form()
     # dicom_data.BitsAllocated = 16
     # dicom_data.BitsStored = 16
     # dicom_data.HighBit = 15
+
 
 
     patient_name_str = str(dicom_data.PatientName) if is_dicom else ""
