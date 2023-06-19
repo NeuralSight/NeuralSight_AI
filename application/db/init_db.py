@@ -14,7 +14,7 @@ def init_db(db: Session) -> None:
     # Tables should be created with Alembic migrations
     # But if you don't want to use migrations, create
     # the tables un-commenting the next line
-    # db_base.Base.metadata.create_all(bind=database.engine)
+    db_base.Base.metadata.create_all(bind=database.engine)
 
     user = crud.user.get_by_email(db, email=settings.FIRST_SUPERUSER)
     if not user:
