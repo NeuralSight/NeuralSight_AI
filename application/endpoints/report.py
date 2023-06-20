@@ -323,54 +323,56 @@ password: str = Form()
     except Exception as e:
         return {"error": f"Error sending file to Orthanc: {e}"}
 
-    res, dicom_data = predict_dicom_chest(model, file_bytes)
-    res.render()
-    #
-    # # Create a new DICOM file with the results
-    print(f"Total Number of Images are  {len(res.ims)}")
-    # dicom_data.BitsAllocated = 16
-    # dicom_data.BitsStored = 16
-    # dicom_data.HighBit = 15
+    try:
+        res, dicom_data = predict_dicom_chest(model, file_bytes)
+        res.render()
+        #
+        # # Create a new DICOM file with the results
+        print(f"Total Number of Images are  {len(res.ims)}")
+        # dicom_data.BitsAllocated = 16
+        # dicom_data.BitsStored = 16
+        # dicom_data.HighBit = 15
 
 
 
-    patient_name_str = str(dicom_data.PatientName) if is_dicom else ""
-    new_patient_name_str = patient_name_str + "_PREDICTED"
-    new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
-    dicom_data.PatientName = new_patient_name
-    dicom_data.PatientID = f"{patient_id}_predicted"
-    dicom_data.SOPInstanceUID = pydicom.uid.generate_uid()
-    dicom_data.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
-    dicom_data.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
-    cv2.imwrite("lets.png", res.ims[0])
-    dicom_data.PixelData = np.array(Image.open("lets.png").convert("L")).tobytes()  #res.ims[0].tobytes() #cv2.imencode('.png', res.ims[0])[1].tobytes() #res.ims[0].tobytes()
-    print(f"Predicted Shape is {res.ims[0].shape}")
+        patient_name_str = str(dicom_data.PatientName) if is_dicom else ""
+        new_patient_name_str = patient_name_str + "_PREDICTED"
+        new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
+        dicom_data.PatientName = new_patient_name
+        dicom_data.PatientID = f"{patient_id}_predicted"
+        dicom_data.SOPInstanceUID = pydicom.uid.generate_uid()
+        dicom_data.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
+        dicom_data.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
+        cv2.imwrite("lets.png", res.ims[0])
+        dicom_data.PixelData = np.array(Image.open("lets.png").convert("L")).tobytes()  #res.ims[0].tobytes() #cv2.imencode('.png', res.ims[0])[1].tobytes() #res.ims[0].tobytes()
+        print(f"Predicted Shape is {res.ims[0].shape}")
 
-    # write the DICOM file to a BytesIO object
-    buffer = BytesIO()
-    pydicom.dcmwrite(buffer, dicom_data)
-    buffer.seek(0)
+        # write the DICOM file to a BytesIO object
+        buffer = BytesIO()
+        pydicom.dcmwrite(buffer, dicom_data)
+        buffer.seek(0)
 
-    # get the contents of the BytesIO object as bytes
-    file_bytes = buffer.read()
-    #save back the results
-    files = {'file': ("preds_"+file.filename, file_bytes, 'application/dicom')}
-    response2 = requests.post(url, data=file_bytes, auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
-    print("Preds Status code:   ",response2.status_code)
-    if response2.status_code == 401:
-        return HTTPException(
-            status_code=401,
-            detail="Please Provide correct credentials. Not Authorised to access this service",
-        )
-    if response2.status_code != 200:
-        print("An issue,  ",response2.text)
-        return {"error": f"Error sending file to Orthancqq: {response2.content}"}
-    else:
-        if is_dicom:
-            print(f"Preds is  {response1.json()}")
+        # get the contents of the BytesIO object as bytes
+        file_bytes = buffer.read()
+        #save back the results
+        files = {'file': ("preds_"+file.filename, file_bytes, 'application/dicom')}
+        response2 = requests.post(url, data=file_bytes, auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
+        print("Preds Status code:   ",response2.status_code)
+        if response2.status_code == 401:
+            return HTTPException(
+                status_code=401,
+                detail="Please Provide correct credentials. Not Authorised to access this service",
+            )
+        if response2.status_code != 200:
+            print("An issue,  ",response2.text)
+            return {"error": f"Error sending file to Orthancqq: {response2.content}"}
+        else:
+            if is_dicom:
+                print(f"Preds is  {response1.json()}")
 
-    return {"uploaded_details": response1.json() if is_dicom else [], "predicted_details": response2.json(), "results":{"name": res.names, "preds":res.pred[0].tolist()}}
-
+        return {"uploaded_details": response1.json() if is_dicom else [], "predicted_details": response2.json(), "results":{"name": res.names, "preds":res.pred[0].tolist()}}
+    except Exception as e:
+        return {"error": f"Error sending file to Orthanc: {e}"}
 
 @router.post("/")
 async def create_patient(
