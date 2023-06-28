@@ -170,6 +170,31 @@ def modify_dicom_metadata(input_file_path, new_metadata, file_refence):
     return dicom_data
 
 
+def modify_dicom_metadata_pred(dicom_data, new_metadata, file_refence):
+    # Read the DICOM file
+
+    patient_id = str(pydicom.uid.generate_uid())
+
+    # Modify the metadata
+    for tag, value in new_metadata.items():
+        if tag in dicom_data:
+            dicom_data[tag].value = value
+        else:
+            pass
+    # Generate unique identifiers for SOPInstanceUID, PatientID, and StudyID
+    new_patient_name_str = file_refence + "_PREDICTED"
+    new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
+    dicom_data.PatientName = new_patient_name
+    dicom_data.PatientID = f"{patient_id}_predicted"
+    dicom_data.SOPInstanceUID = pydicom.uid.generate_uid()
+    dicom_data.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
+    dicom_data.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
+    dicom_data.StudyID = pydicom.uid.generate_uid()
+    dicom_data.StudyInstanceUID = pydicom.uid.generate_uid()
+    dicom_data.SeriesInstanceUID = pydicom.uid.generate_uid()
+    return dicom_data
+
+
 def predict_png_image(request_object_content, file_refence):
     patient_id = str(pydicom.uid.generate_uid())
     uploaded_img = Image.open(io.BytesIO(request_object_content))
@@ -343,20 +368,29 @@ file_refence: str = Form(None),
         # dicom_data.BitsStored = 16
         # dicom_data.HighBit = 15
 
-        patient_name_str = file_refence
-        new_patient_name_str = patient_name_str + "_PREDICTED"
-        new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
-        dicom_data.PatientName = new_patient_name
-        dicom_data.PatientID = f"{patient_id}_predicted"
-        dicom_data.SOPInstanceUID = pydicom.uid.generate_uid()
-        dicom_data.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
-        dicom_data.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
-        dicom_data.PhotometricInterpretation = "MONOCHROME2"
+        dicom_data = dicom_data = modify_dicom_metadata_pred(dicom_data, {'PatientName': '','PatientAge': '','StudyDescription': 'Created',}, file_refence)
+
         dicom_data.Rows = res.ims[0].shape[0]
         dicom_data.Columns = res.ims[0].shape[1]
+        dicom_data.PhotometricInterpretation = "MONOCHROME2"
+        cv2.imwrite("let1.png", res.ims[0])
+        dicom_data.PixelData = np.array(Image.open("let1.png").convert("L")).tobytes()
 
-        cv2.imwrite("lets.png", res.ims[0])
-        dicom_data.PixelData = np.array(Image.open("lets.png").convert("L")).tobytes()  #res.ims[0].tobytes() #cv2.imencode('.png', res.ims[0])[1].tobytes() #res.ims[0].tobytes()
+
+        # patient_name_str = file_refence
+        # new_patient_name_str = patient_name_str + "_PREDICTED"
+        # new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
+        # dicom_data.PatientName = new_patient_name
+        # dicom_data.PatientID = f"{patient_id}_predicted"
+        # dicom_data.SOPInstanceUID = pydicom.uid.generate_uid()
+        # dicom_data.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
+        # dicom_data.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
+        # dicom_data.PhotometricInterpretation = "MONOCHROME2"
+        # dicom_data.Rows = res.ims[0].shape[0]
+        # dicom_data.Columns = res.ims[0].shape[1]
+
+        # cv2.imwrite("lets.png", res.ims[0])
+        # dicom_data.PixelData = np.array(Image.open("lets.png").convert("L")).tobytes()  #res.ims[0].tobytes() #cv2.imencode('.png', res.ims[0])[1].tobytes() #res.ims[0].tobytes()
         print(f"Predicted Shape is {res.ims[0].shape}")
 
         # write the DICOM file to a BytesIO object
