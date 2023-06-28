@@ -10,9 +10,9 @@
     "libOrthancWebViewer.so",
     "libOrthancDicomWeb.so",
     "libOrthancPostgreSQLIndex.so",
-    "libOrthancPostgreSQLStorage.so"
+    "libOrthancPostgreSQLStorage.so",
+    "libOrthancGdcm.so"
   ],
-
 
 
   "ConcurrentJobs": 2,

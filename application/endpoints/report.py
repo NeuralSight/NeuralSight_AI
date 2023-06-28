@@ -153,14 +153,13 @@ def modify_dicom_metadata(input_file_path, new_metadata):
     # Generate unique identifiers for SOPInstanceUID, PatientID, and StudyID
 
     patient_name_str = str(dicom_data.PatientName)
-    new_patient_name_str = patient_name_str + "_PREDICTED"
+    new_patient_name_str = patient_name_str + "_Image_Converted"
     new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
     dicom_data.PatientName = new_patient_name
     dicom_data.PatientID = f"{patient_id}_predicted"
     dicom_data.SOPInstanceUID = pydicom.uid.generate_uid()
     dicom_data.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
     dicom_data.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
-    dicom_data.PatientID = pydicom.uid.generate_uid()
     dicom_data.StudyID = pydicom.uid.generate_uid()
     dicom_data.StudyInstanceUID = pydicom.uid.generate_uid()
     dicom_data.SeriesInstanceUID = pydicom.uid.generate_uid()
@@ -181,6 +180,10 @@ def predict_png_image(request_object_content):
 
     dicom_data = modify_dicom_metadata("ID_00528aa0e.dcm",{'PatientName': '','PatientAge': '','StudyDescription': 'Created',})
 
+
+    # dicom_data.BitsAllocated = 16
+    # dicom_data.BitsStored = 16
+    # dicom_data.HighBit = 15
 
     dicom_data.Rows = results.ims[0].shape[0]
     dicom_data.Columns = results.ims[0].shape[1]

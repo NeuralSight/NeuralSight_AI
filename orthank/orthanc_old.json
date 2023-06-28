@@ -1,10 +1,49 @@
 {
-  "Name": "orthanc-file",
-  "RegisteredUsers": {
-    "demo": "demo"
+  "Name": "NeuralSight ORTHANC SERVER",
+  "DicomAet": "ORTHANC",
+  "DicomPort": 4242,
+  "HttpPort": 8042,
+  "AuthenticationEnabled": true,
+  "HttpAuthEnabled": true,
+  "HttpAuthAuthentication": "Basic",
+  "RemoteAccessAllowed": true,
+  "RemoteAccessEnabled" : true,
+  "OrthancExplorerEnabled": true,
+  "DicomWeb": {
+   "Enabled": true,
+   "RootWebPath": "/dicom-web/",
+   "Root" : "/dicom-web/",
+   "Enable" : true,
+   "EnableCors": true,
+   "AllowOrigin": "*",
+   "Host" : "",
+    "StudiesMetadata" : "Full",
+    "SeriesMetadata" : "Full",
+    "PublicRoot": "/dicom-web/"
+
   },
+  "PythonScript": "main.py",
+  "PythonVerbose" : true,
+  "RegisteredUsers":
+    {
+      "neurallabs": "neurallabsafrica",
+      "edwin": "edwin",
+      "steve": "steve"
+    },
+  "Plugins": [
+    "libOrthancWebViewer.so",
+    "libOrthancDicomWeb.so",
+    "libOrthancPostgreSQLIndex.so",
+    "libOrthancPostgreSQLStorage.so"
+  ],
   "PostgreSQL": {
-    "Password": "pg-password",
-    "Host": "index-db"
-  }
+    "EnableStorage": true,
+    "EnableIndex": true,
+    "Database": "orthanc_db",
+    "Username": "neurallabs",
+    "Password": "neurallabs",
+    "Host": "postgres_data",
+    "Port": 5432
+  },
+  "StorageArea" : "/var/lib/orthanc/db"
 }
