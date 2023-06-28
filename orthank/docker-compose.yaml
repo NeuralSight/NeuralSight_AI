@@ -38,6 +38,7 @@ services:
       - ./libOrthancDicomWeb.so:/run/secrets/libOrthancDicomWeb.so
       - ./libOrthancWebViewer.so:/run/secrets/libOrthancWebViewer.so
       - ./libOrthancPostgreSQLIndex.so:/run/secrets/libOrthancPostgreSQLIndex.so
+      - ./libOrthancGdcm.so:/run/secrets/libOrthancGdcm.so
       - ./libOrthancPostgreSQLStorage.so:/run/secrets/libOrthancPostgreSQLStorage.so
       - ./orthanc_data:/var/lib/orthanc/db
     environment:
@@ -109,3 +110,4 @@ secrets:
 # https://lsb.orthanc-server.com/plugin-postgresql/5.0/libOrthancPostgreSQLIndex.so
 # https://lsb.orthanc-server.com/plugin-webviewer/2.8/libOrthancWebViewer.so
 # https://lsb.orthanc-server.com/plugin-postgresql/5.0/libOrthancPostgreSQLStorage.so
+# https://lsb.orthanc-server.com/plugin-gdcm/mainline-gdcm3/libOrthancGdcm.so
