@@ -136,7 +136,7 @@ print(f"OTHANK URL   {ORTHANC_URL}")
 
 
 
-def modify_dicom_metadata(input_file_path, new_metadata):
+def modify_dicom_metadata(input_file_path, new_metadata, file_refence):
     # Read the DICOM file
     dicom_data = pydicom.dcmread(input_file_path)
     patient_id = str(pydicom.uid.generate_uid())
@@ -152,7 +152,7 @@ def modify_dicom_metadata(input_file_path, new_metadata):
 
     # Generate unique identifiers for SOPInstanceUID, PatientID, and StudyID
 
-    patient_name_str = str(dicom_data.PatientName)
+    patient_name_str = str(file_refence)
     new_patient_name_str = patient_name_str + "_Image_Converted"
     new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
     dicom_data.PatientName = new_patient_name
@@ -170,7 +170,7 @@ def modify_dicom_metadata(input_file_path, new_metadata):
     return dicom_data
 
 
-def predict_png_image(request_object_content):
+def predict_png_image(request_object_content, file_refence):
     patient_id = str(pydicom.uid.generate_uid())
     uploaded_img = Image.open(io.BytesIO(request_object_content))
     results = model(uploaded_img, size=640)
@@ -178,7 +178,7 @@ def predict_png_image(request_object_content):
     annotations_image = []
     results.render()
 
-    dicom_data = modify_dicom_metadata("ID_00528aa0e.dcm",{'PatientName': '','PatientAge': '','StudyDescription': 'Created',})
+    dicom_data = modify_dicom_metadata("ID_00528aa0e.dcm",{'PatientName': '','PatientAge': '','StudyDescription': 'Created',}, file_refence)
 
 
     # dicom_data.BitsAllocated = 16
@@ -256,7 +256,8 @@ password: str = Form()
 async def prostate_segmentation(
 file: UploadFile = File(...),
 username: str = Form(),
-password: str = Form()
+password: str = Form(),
+file_refence: str = Form(None),
 # current_user: models.User = Depends(deps.get_current_active_user)
 ):
     # Read the uploaded DICOM file
@@ -264,13 +265,16 @@ password: str = Form()
     file_bytes = await file.read()
     response1 ={}
     patient_id = str(pydicom.uid.generate_uid())
+
+    if not file_refence:
+        file_refence = "patient_file"
     try:
         # Check if the file is in DICOM format
         file_type =file.content_type
         if file_type == "image/jpeg" or file_type == "image/png":
             is_dicom = False
             print(f"We go here")
-            final_dicom, res =  predict_png_image(file_bytes)
+            final_dicom, res =  predict_png_image(file_bytes, file_refence)
             buffer = BytesIO()
             pydicom.dcmwrite(buffer, final_dicom)
             buffer.seek(0)
@@ -294,6 +298,9 @@ password: str = Form()
             is_dicom = True
             dicom_img = pydicom.dcmread(BytesIO(file_bytes))
             dicom_img.PatientID = patient_id
+            # change the name//
+            new_patient_name = pydicom.valuerep.PersonName(file_refence + "_Uploaded")
+            dicom_img.PatientName = new_patient_name
             # Generate UIDs if they are missing
             if not dicom_img.SeriesInstanceUID:
                 dicom_img.SeriesInstanceUID = pydicom.uid.generate_uid()
@@ -338,7 +345,7 @@ password: str = Form()
 
 
 
-        patient_name_str = str(dicom_data.PatientName) if is_dicom else ""
+        patient_name_str = file_refence
         new_patient_name_str = patient_name_str + "_PREDICTED"
         new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
         dicom_data.PatientName = new_patient_name
@@ -346,6 +353,9 @@ password: str = Form()
         dicom_data.SOPInstanceUID = pydicom.uid.generate_uid()
         dicom_data.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
         dicom_data.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
+        dicom_data.Rows = res.ims[0].shape[0]
+        dicom_data.Columns = res.ims[0].shape[1]
+
         cv2.imwrite("lets.png", res.ims[0])
         dicom_data.PixelData = np.array(Image.open("lets.png").convert("L")).tobytes()  #res.ims[0].tobytes() #cv2.imencode('.png', res.ims[0])[1].tobytes() #res.ims[0].tobytes()
         print(f"Predicted Shape is {res.ims[0].shape}")
