@@ -343,8 +343,6 @@ file_refence: str = Form(None),
         # dicom_data.BitsStored = 16
         # dicom_data.HighBit = 15
 
-
-
         patient_name_str = file_refence
         new_patient_name_str = patient_name_str + "_PREDICTED"
         new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
@@ -353,6 +351,7 @@ file_refence: str = Form(None),
         dicom_data.SOPInstanceUID = pydicom.uid.generate_uid()
         dicom_data.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
         dicom_data.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
+        dicom_data.PhotometricInterpretation = "MONOCHROME2"
         dicom_data.Rows = res.ims[0].shape[0]
         dicom_data.Columns = res.ims[0].shape[1]
 
