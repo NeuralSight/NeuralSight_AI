@@ -1,5 +1,7 @@
 from db.db_base import Base
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
+import json
+from sqlalchemy import Column, DateTime, func, JSON, String
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from sqlalchemy import func
@@ -26,6 +28,20 @@ class Patient(Base):
     user_id = Column(Integer, ForeignKey("user.id"))
     user = relationship("User", back_populates="patient_records")
     report = relationship("Report", back_populates="patient")
+
+
+
+
+class OrthancModel(Base):
+    __tablename__ = 'orthanc'
+    ID = Column(String, primary_key=True, index=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=datetime.now)
+    ParentPatient = Column(String, nullable=True)
+    ParentSeries = Column(String, nullable=True)
+    ParentStudy = Column(String, nullable=True)
+    Path = Column(String, nullable=True)
+    results = Column(JSON, nullable=True)
 
 
 
