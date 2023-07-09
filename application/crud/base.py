@@ -27,6 +27,12 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         except Exception as e:
             return db.query(self.model).filter(self.model.id == id).first()
 
+    def GET(self, db: Session, id: Any) -> Optional[ModelType]:
+        try:
+            return db.query(self.model).filter(self.model.ID == id).first()
+        except Exception as e:
+            return db.query(self.model).filter(self.model.ID == id).first()
+
     def get_by_field(self, db: Session, field: Any) -> Optional[ModelType]:
         return db.query(self.model).filter(self.model.patient_id == field).first()
 
