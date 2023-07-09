@@ -12,8 +12,9 @@ from dotenv import load_dotenv
 import boto3, botocore
 from io import BytesIO
 
+import json
 # FastAPI and ORM
-from fastapi import FastAPI, File, Form, UploadFile, APIRouter, Body, Depends, HTTPException, Response
+from fastapi import FastAPI, File, Form, UploadFile, APIRouter, Body, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 # Project's specific modules
@@ -232,7 +233,9 @@ def predict_png_image(request_object_content, file_refence):
     # Set the file meta information in the dataset
     # dicom_data.file_meta = file_meta
 
-    predict_results = {"name": results.names, "preds":results.pred[0].tolist()}
+    x = dict({a[1]:a[0]   for a in  [[results.names.get(int(a), None) if item.index(a)==5 else a for a in item[-2:]] for item in results.pred[0].tolist()]})
+
+    predict_results = {"name": results.names, "preds":x}
 
     return dicom_data, predict_results
 
@@ -243,9 +246,97 @@ def predict_dicom_chest(model, input_bytes):
     """
     dicom = pydicom.dcmread(BytesIO(input_bytes))
     img = dicom.pixel_array.astype(np.float32)
-    print(f"Array Shape is  {img.shape}")
+    # print(f"Array Shape is  {img.shape}")
     results = model(img, size=640)
+
+
     return results, dicom
+
+
+
+# orthankSaver
+@router.post("/models")
+async def models_handler():
+    answer = {
+        "pathologies": "pathologies",
+        "pneumonia": "pneumonia",
+    }
+    return answer
+
+
+
+
+@router.post("/upload", response_model=schemas.OrthancBaseOptional)
+def create_predicted_data(
+    *,
+    db: Session = Depends(deps.get_db),
+    details: schemas.OrthancCreate,
+) -> Any:
+    try:
+        saved_details = crud.orthankSaver.create(db, obj_in=dict(details))
+        return  schemas.OrthancBaseOptional(
+            ID=saved_details.ID,
+            ParentPatient=saved_details.ParentPatient,
+            ParentSeries=saved_details.ParentSeries,
+            ParentStudy=saved_details.ParentStudy,
+            Path=saved_details.Path,
+            results=saved_details.results,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error occurred during data upload. Duplicate Keys   {e}")
+
+
+
+
+@router.get("/dicom/{dicom_uuid}", response_model=schemas.OrthancBaseOptional)
+def read_dicom_by_uuid(
+    uuid: str,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Get a specific dicom by id.
+    """
+    saved_details = crud.orthankSaver.get(db, id=uuid)
+    if saved_details:
+        return schemas.OrthancBaseOptional(
+            ID=saved_details.ID,
+            ParentPatient=saved_details.ParentPatient,
+            ParentSeries=saved_details.ParentSeries,
+            ParentStudy=saved_details.ParentStudy,
+            Path=saved_details.Path,
+            results=json.loads(saved_details.results),
+        )
+    raise HTTPException(
+        status_code=400, detail="No Item with Such UUID"
+    )
+
+
+#
+#
+@router.get("/find/all", response_model=List[schemas.OrthancBaseOptional])
+def read_all_ids_saved(
+    response: Response,
+    db: Session = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100,
+) -> Any:
+    data = crud.orthankSaver.get_multi_data(db, skip=skip, limit=limit)
+    if data:
+        results = [
+        schemas.OrthancBaseOptional(
+            ID=saved_details.ID,
+            ParentPatient=saved_details.ParentPatient,
+            ParentSeries=saved_details.ParentSeries,
+            ParentStudy=saved_details.ParentStudy,
+            Path=saved_details.Path,
+            results=json.loads(saved_details.results),
+        )  for saved_details in data
+        ]
+        response.headers["Access-Control-Expose-Headers"] = "Content-Range"
+        response.headers["Content-Range"] = f"0-9/{len(results)}"
+        return results
+    else:
+        return []
 
 
 
@@ -283,6 +374,7 @@ file: UploadFile = File(...),
 username: str = Form(),
 password: str = Form(),
 file_refence: str = Form(None),
+db: Session = Depends(deps.get_db),
 # current_user: models.User = Depends(deps.get_current_active_user)
 ):
     # Read the uploaded DICOM file
@@ -298,7 +390,6 @@ file_refence: str = Form(None),
         file_type =file.content_type
         if file_type == "image/jpeg" or file_type == "image/png":
             is_dicom = False
-            print(f"We go here")
             final_dicom, res =  predict_png_image(file_bytes, file_refence)
             buffer = BytesIO()
             pydicom.dcmwrite(buffer, final_dicom)
@@ -308,7 +399,6 @@ file_refence: str = Form(None),
             file_bytes = buffer.read()
             #save back the results
             response2 = requests.post(url, data=file_bytes, auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
-            print("Preds Status code:   ",response2.status_code)
             if response2.status_code == 401:
                 return HTTPException(
                     status_code=401,
@@ -317,7 +407,27 @@ file_refence: str = Form(None),
             if response2.status_code != 200:
                 print("An issue,  ",response2.text)
                 return {"error": f"Error sending file to Orthancqq: {response2.content}"}
-            return {"uploaded_details": {}, "predicted_details": response2.json(), "results":res}
+
+
+            #
+            # x = dict({a[1]:a[0]   for a in  [[res.names.get(int(a), None) if item.index(a)==5 else a for a in item[-2:]] for item in res.pred[0].tolist()]})
+            response2 = response2.json()
+
+            try:
+                data_to_save = {
+                "ID":response2['ID'],
+                "ParentPatient":response2['ParentPatient'],
+                "ParentSeries":response2['ParentSeries'],
+                "ParentStudy":response2['ParentStudy'],
+                "Path":response2['Path'],
+                "results":res,
+                }
+                saved_details = crud.orthankSaver.create(db, obj_in=data_to_save)
+
+            except Exception as e:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error occurred during data upload.  {e}")
+
+            return {"uploaded_details": {}, "predicted_details": response2, "results":data_to_save}
 
         elif file_type == "application/dicom":
             is_dicom = True
@@ -356,7 +466,7 @@ file_refence: str = Form(None),
         print("Uploaded File Type:", file_type)
 
     except Exception as e:
-        return {"error": f"Error sending file to Orthanc: {e}"}
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error sending file to Orthanc: {e}")
 
     try:
         res, dicom_data = predict_dicom_chest(model, file_bytes)
@@ -376,21 +486,6 @@ file_refence: str = Form(None),
         cv2.imwrite("let1.png", res.ims[0])
         dicom_data.PixelData = np.array(Image.open("let1.png").convert("L")).tobytes()
 
-
-        # patient_name_str = file_refence
-        # new_patient_name_str = patient_name_str + "_PREDICTED"
-        # new_patient_name = pydicom.valuerep.PersonName(new_patient_name_str)
-        # dicom_data.PatientName = new_patient_name
-        # dicom_data.PatientID = f"{patient_id}_predicted"
-        # dicom_data.SOPInstanceUID = pydicom.uid.generate_uid()
-        # dicom_data.file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
-        # dicom_data.file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
-        # dicom_data.PhotometricInterpretation = "MONOCHROME2"
-        # dicom_data.Rows = res.ims[0].shape[0]
-        # dicom_data.Columns = res.ims[0].shape[1]
-
-        # cv2.imwrite("lets.png", res.ims[0])
-        # dicom_data.PixelData = np.array(Image.open("lets.png").convert("L")).tobytes()  #res.ims[0].tobytes() #cv2.imencode('.png', res.ims[0])[1].tobytes() #res.ims[0].tobytes()
         print(f"Predicted Shape is {res.ims[0].shape}")
 
         # write the DICOM file to a BytesIO object
@@ -416,9 +511,26 @@ file_refence: str = Form(None),
             if is_dicom:
                 print(f"Preds is  {response1.json()}")
 
-        return {"uploaded_details": response1.json() if is_dicom else [], "predicted_details": response2.json(), "results":{"name": res.names, "preds":res.pred[0].tolist()}}
+        x = dict({a[1]:a[0]   for a in  [[res.names.get(int(a), None) if item.index(a)==5 else a for a in item[-2:]] for item in res.pred[0].tolist()]})
+
+
+        response2 = response2.json()
+        data_to_save = {
+        "ID":response2['ID'],
+        "ParentPatient":response2['ParentPatient'],
+        "ParentSeries":response2['ParentSeries'],
+        "ParentStudy":response2['ParentStudy'],
+        "Path":response2['Path'],
+        "results":x,
+        }
+        saved_details = crud.orthankSaver.create(db, obj_in=data_to_save)
+        # print(f"DATA SAVED    ", saved_details)
+
+
+        return {"uploaded_details": response1.json() if is_dicom else [], "predicted_details": response2, "results":data_to_save}
     except Exception as e:
-        return {"error": f"Error sending file to Orthanc: {e}"}
+        # print(f"ERROROROR   {e}")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error sending file to Orthanc: {e}")
 
 @router.post("/")
 async def create_patient(

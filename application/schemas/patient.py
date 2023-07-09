@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
+from typing import Optional, Dict, Any, List, Union
+
 
 class PatientBase(BaseModel):
     id: str
@@ -27,3 +29,27 @@ class ReportCreate(PatientBase):
 
 class ReportUpdate(PatientBase):
     report: Optional[str] = None
+
+
+
+
+# Orthanck saved.....
+class OrthancBase(BaseModel):
+    ID: str
+    ParentPatient: Optional[str] = None
+    ParentSeries: Optional[str] = None
+    ParentStudy: Optional[str] = None
+    Path: Optional[str] = None
+    results: Optional[Dict[str, Any]] = None
+
+
+class OrthancBaseOptional(BaseModel):
+    ID: str
+    ParentPatient: Optional[str] = None
+    ParentSeries: Optional[str] = None
+    ParentStudy: Optional[str] = None
+    Path: Optional[str] = None
+    results: Optional[Any] = None
+
+class OrthancCreate(OrthancBase):
+    pass

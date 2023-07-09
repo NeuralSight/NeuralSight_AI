@@ -3,9 +3,9 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from sqlalchemy.orm import Session
 from datetime import datetime
 from crud.base import CRUDBase
-from model.inference import Patient, Report, DeleteReportObject, DeletePatientObject
-from schemas.patient import PatientCreate, PatientUpdate, ReportCreate, ReportUpdate
-
+from model.inference import Patient, Report, DeleteReportObject, DeletePatientObject, OrthancModel
+from schemas.patient import PatientCreate, PatientUpdate, ReportCreate, ReportUpdate, OrthancBase, OrthancCreate
+import json
 
 from db.db_base import Base
 
@@ -124,8 +124,44 @@ class CRUDReport(CRUDBase[Report, ReportCreate, ReportUpdate]):
     #     return super().update(db, db_obj=db_obj, obj_in=update_data)
 
 
+class CRUDOrthanc(CRUDBase[OrthancModel, OrthancCreate, OrthancBase]):
+    def create(self, db: Session, *, obj_in: OrthancCreate) -> OrthancBase:
+
+        db_obj = OrthancModel(
+            ID=obj_in.get('ID'),
+            ParentPatient= obj_in.get('ParentPatient'),
+            ParentSeries= obj_in.get('ParentSeries'),
+            ParentStudy= obj_in.get('ParentStudy'),
+            Path= obj_in.get('Path'),
+            results= json.dumps(obj_in.get('results')),
+        )
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+
+    def get_by_data_id(self, db: Session, *, ID: Any) -> Optional[OrthancBase]:
+        return db.query(OrthancModel).filter(OrthancModel.ID == ID).all()
+
+    def get(self, db: Session, id: Any) -> Optional[ModelType]:
+        try:
+            return db.query(OrthancModel).filter(OrthancModel.ID == id).first()
+        except Exception as e:
+            return db.query(OrthancModel).filter(OrthancModel.ID == id).first()
+
+    def get_multi_data(
+        self, db: Session, *, skip: int = 0, limit: int = 100
+    ) -> List[ModelType]:
+
+        try:
+            print(f"e    {e}")
+            return db.query(OrthancModel).filter(OrthancModel).offset(skip).limit(limit).all()
+        except Exception as e:
+            return db.query(OrthancModel).offset(skip).limit(limit).all()
+
 
 patient = CRUDPatient(Patient)
+orthankSaver = CRUDOrthanc(CRUDOrthanc)
 report = CRUDReport(Report)
 patient_delete = CRUDDeletePatient(DeletePatientObject)
 report_delete = CRUDDeleteReport(DeleteReportObject)
