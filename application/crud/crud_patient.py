@@ -149,10 +149,12 @@ class CRUDOrthanc(CRUDBase[OrthancModel, OrthancCreate, OrthancBase]):
         except Exception as e:
             return db.query(OrthancModel).filter(OrthancModel.ID == id).first()
 
-    def get_multi(
+    def get_multi_data(
         self, db: Session, *, skip: int = 0, limit: int = 100
     ) -> List[ModelType]:
+
         try:
+            print(f"e    {e}")
             return db.query(OrthancModel).filter(OrthancModel).offset(skip).limit(limit).all()
         except Exception as e:
             return db.query(OrthancModel).offset(skip).limit(limit).all()
