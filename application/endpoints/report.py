@@ -13,7 +13,7 @@ import boto3, botocore
 from io import BytesIO
 
 # FastAPI and ORM
-from fastapi import FastAPI, File, Form, UploadFile, APIRouter, Body, Depends, HTTPException, Response
+from fastapi import FastAPI, File, Form, UploadFile, APIRouter, Body, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 # Project's specific modules
@@ -247,6 +247,84 @@ def predict_dicom_chest(model, input_bytes):
     results = model(img, size=640)
     return results, dicom
 
+
+
+# orthankSaver
+@router.post("/models")
+async def models_handler():
+    answer = {
+        "pathologies": "pathologies",
+        "pneumonia": "pneumonia",
+    }
+    return answer
+
+
+
+@router.post("/upload", response_model=schemas.OrthancBaseOptional)
+def create_predicted_data(
+    *,
+    db: Session = Depends(deps.get_db),
+    details: schemas.OrthancCreate,
+) -> Any:
+    try:
+        saved_details = crud.orthankSaver.create(db, obj_in=dict(details))
+        return  schemas.OrthancBaseOptional(
+            ID=saved_details.ID,
+            ParentPatient=saved_details.ParentPatient,
+            ParentSeries=saved_details.ParentSeries,
+            ParentStudy=saved_details.ParentStudy,
+            Path=saved_details.Path,
+            results=saved_details.results,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error occurred during data upload. DUplicate Keys   {e}")
+
+
+
+@router.get("/dicom/all", response_model=List[schemas.OrthancBaseOptional])
+def read_all_ids_saved(
+    response: Response,
+    db: Session = Depends(deps.get_db),
+    skip: int = 0,
+    limit: int = 100,
+) -> Any:
+    data = crud.orthankSaver.get_multi(db, skip=skip, limit=limit)
+    results = [
+    schemas.OrthancBaseOptional(
+        ID=saved_details.ID,
+        ParentPatient=saved_details.ParentPatient,
+        ParentSeries=saved_details.ParentSeries,
+        ParentStudy=saved_details.ParentStudy,
+        Path=saved_details.Path,
+        results=saved_details.results,
+    )  for saved_details in data
+    ]
+    response.headers["Access-Control-Expose-Headers"] = "Content-Range"
+    response.headers["Content-Range"] = f"0-9/{len(results)}"
+    return results
+
+@router.get("/dicom/{dicom_uuid}")
+def read_dicom_by_uuid(
+    uuid: str,
+    db: Session = Depends(deps.get_db),
+    response_model=schemas.OrthancBaseOptional
+) -> Any:
+    """
+    Get a specific dicom by id.
+    """
+    saved_details = crud.orthankSaver.get(db, id=uuid)
+    if saved_details:
+        return schemas.OrthancBaseOptional(
+            ID=saved_details.ID,
+            ParentPatient=saved_details.ParentPatient,
+            ParentSeries=saved_details.ParentSeries,
+            ParentStudy=saved_details.ParentStudy,
+            Path=saved_details.Path,
+            results=saved_details.results,
+        )
+    raise HTTPException(
+        status_code=400, detail="No Item with Such UUID"
+    )
 
 
 
