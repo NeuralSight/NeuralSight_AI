@@ -490,6 +490,7 @@ db: Session = Depends(deps.get_db),
         dicom_data.PhotometricInterpretation = "MONOCHROME2"
         cv2.imwrite("let1.png", res.ims[0])
         dicom_data.PixelData = np.array(Image.open("let1.png").convert("L")).tobytes()
+        SOP_UUID = dicom_img.StudyInstanceUID
 
         print(f"Predicted Shape is {res.ims[0].shape}")
 
