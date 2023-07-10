@@ -391,6 +391,7 @@ db: Session = Depends(deps.get_db),
         if file_type == "image/jpeg" or file_type == "image/png":
             is_dicom = False
             final_dicom, res =  predict_png_image(file_bytes, file_refence)
+            SOP_UUID = final_dicom.StudyInstanceUID
             buffer = BytesIO()
             pydicom.dcmwrite(buffer, final_dicom)
             buffer.seek(0)
@@ -415,7 +416,7 @@ db: Session = Depends(deps.get_db),
 
             try:
                 data_to_save = {
-                "ID":response2['ID'],
+                "ID":SOP_UUID,
                 "ParentPatient":response2['ParentPatient'],
                 "ParentSeries":response2['ParentSeries'],
                 "ParentStudy":response2['ParentStudy'],
@@ -443,6 +444,10 @@ db: Session = Depends(deps.get_db),
                 dicom_img.SOPInstanceUID = pydicom.uid.generate_uid()
             if not dicom_img.StudyInstanceUID:
                 dicom_img.StudyInstanceUID = pydicom.uid.generate_uid()
+
+            SOP_UUID = dicom_img.StudyInstanceUID
+
+
             # write the DICOM file to a BytesIO object
             buffer = BytesIO()
             pydicom.dcmwrite(buffer, dicom_img)
@@ -516,7 +521,7 @@ db: Session = Depends(deps.get_db),
 
         response2 = response2.json()
         data_to_save = {
-        "ID":response2['ID'],
+        "ID": SOP_UUID,
         "ParentPatient":response2['ParentPatient'],
         "ParentSeries":response2['ParentSeries'],
         "ParentStudy":response2['ParentStudy'],
