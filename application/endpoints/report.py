@@ -474,8 +474,6 @@ db: Session = Depends(deps.get_db),
             if not dicom_img.StudyInstanceUID:
                 dicom_img.StudyInstanceUID = pydicom.uid.generate_uid()
 
-            SOP_UUID = dicom_img.StudyInstanceUID
-
 
             # write the DICOM file to a BytesIO object
             buffer = BytesIO()
@@ -524,7 +522,10 @@ db: Session = Depends(deps.get_db),
         dicom_data.PhotometricInterpretation = "MONOCHROME2"
         cv2.imwrite("let1.png", res.ims[0])
         dicom_data.PixelData = np.array(Image.open("let1.png").convert("L")).tobytes()
-        SOP_UUID = dicom_img.StudyInstanceUID
+
+        if not dicom_data.StudyInstanceUID:
+            dicom_data.StudyInstanceUID = pydicom.uid.generate_uid()
+        SOP_UUID = dicom_data.StudyInstanceUID
 
         print(f"Predicted Shape is {res.ims[0].shape}")
 
