@@ -523,9 +523,7 @@ db: Session = Depends(deps.get_db),
         cv2.imwrite("let1.png", res.ims[0])
         dicom_data.PixelData = np.array(Image.open("let1.png").convert("L")).tobytes()
 
-        if not dicom_data.StudyInstanceUID:
-            dicom_data.StudyInstanceUID = pydicom.uid.generate_uid()
-        SOP_UUID = dicom_data.StudyInstanceUID
+
 
         print(f"Predicted Shape is {res.ims[0].shape}")
 
@@ -533,6 +531,10 @@ db: Session = Depends(deps.get_db),
         buffer = BytesIO()
         pydicom.dcmwrite(buffer, dicom_data)
         buffer.seek(0)
+
+        # if not dicom_data.StudyInstanceUID:
+        #     dicom_data.StudyInstanceUID = pydicom.uid.generate_uid()
+        SOP_UUID = dicom_data.StudyInstanceUID
 
         # get the contents of the BytesIO object as bytes
         file_bytes = buffer.read()
