@@ -285,7 +285,7 @@ async def models_handler():
             "model_performance": "Accuracy",
             "website": "https://neuralsight.ai",
             "citation": "",
-            "version": "1.0.0"
+            "version": "1.0.0",
             "active":False,
             "model_id":"YOLOv5"
           }
