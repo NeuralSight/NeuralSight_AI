@@ -257,10 +257,35 @@ def predict_dicom_chest(model, input_bytes):
 # orthankSaver
 @router.post("/models")
 async def models_handler():
-    answer = {
-        "pathologies": "pathologies",
-        "pneumonia": "pneumonia",
-    }
+
+    answer  = [
+          {
+            "model_name": "CXR 13 pathologies YOLOv5",
+            "organ": "chests",
+            "modality": "CT",
+            "task": "classfication for 13 pathologies used for CXR scans",
+            "data_desc": "The model is trained on CT scans images using Medical Images. It is a performs both detection(where is the affected part) and classification (which is the pathology)",
+            "model_desc": "Model architecture is adapted from YOLO (YOU LOOK ONLY ONCE) and it uses the version 5 weights.",
+            "additional_info_required": "",
+            "model_performance": "AUC of 0.79 on 5-fold cross validation",
+            "website": "https://neuralsight.ai",
+            "citation": "",
+            "version": "1.0.0"
+          },
+          {
+            "model_name": "PROSTATE_CANCER",
+            "organ": "prostate",
+            "modality": "MRI",
+            "task": "significant prostate cancer classification",
+            "data_desc": "Used opensource dataset to detect prostate cancer using monai toolkit",
+            "model_desc": "Monai toolkit is used for the purpose of 3D images (those with multiple slices) which are in niffi format",
+            "additional_info_required": "",
+            "model_performance": "Accuracy",
+            "website": "https://neuralsight.ai",
+            "citation": "",
+            "version": "1.0.0"
+          }
+    ]
     return answer
 
 
@@ -426,7 +451,11 @@ db: Session = Depends(deps.get_db),
                 saved_details = crud.orthankSaver.create(db, obj_in=data_to_save)
 
             except Exception as e:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error occurred during data upload.  {e}")
+                error_data = {
+                    "error": "Error sending file to Orthanc",
+                    "detail": str(e)
+                    }
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_data)
 
             return {"uploaded_details": {}, "predicted_details": response2, "results":data_to_save}
 
@@ -471,7 +500,12 @@ db: Session = Depends(deps.get_db),
         print("Uploaded File Type:", file_type)
 
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error sending file to Orthanc: {e}")
+        print(f"ERR R R {e}")
+        error_data = {
+            "error": "Error sending file to Orthanc",
+            "detail": str(e)
+            }
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_data)
 
     try:
         res, dicom_data = predict_dicom_chest(model, file_bytes)
@@ -536,7 +570,11 @@ db: Session = Depends(deps.get_db),
         return {"uploaded_details": response1.json() if is_dicom else [], "predicted_details": response2, "results":data_to_save}
     except Exception as e:
         # print(f"ERROROROR   {e}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Error sending file to Orthanc: {e}")
+        error_data = {
+            "error": "Error sending file to Orthanc",
+            "detail": str(e)
+            }
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error_data)
 
 @router.post("/")
 async def create_patient(
