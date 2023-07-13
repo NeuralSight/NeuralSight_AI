@@ -270,7 +270,9 @@ async def models_handler():
             "model_performance": "AUC of 0.79 on 5-fold cross validation",
             "website": "https://neuralsight.ai",
             "citation": "",
-            "version": "1.0.0"
+            "version": "1.0.0",
+            "active":True,
+            "model_id":"YOLOv5"
           },
           {
             "model_name": "PROSTATE_CANCER",
@@ -284,6 +286,8 @@ async def models_handler():
             "website": "https://neuralsight.ai",
             "citation": "",
             "version": "1.0.0"
+            "active":False,
+            "model_id":"YOLOv5"
           }
     ]
     return answer
@@ -556,6 +560,7 @@ db: Session = Depends(deps.get_db),
 
         x = dict({a[1]:a[0]   for a in  [[res.names.get(int(a), None) if item.index(a)==5 else a for a in item[-2:]] for item in res.pred[0].tolist()]})
 
+        x = {"name": res.names, "preds":x}
 
         response2 = response2.json()
         data_to_save = {
