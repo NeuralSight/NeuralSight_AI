@@ -14,7 +14,7 @@ from io import BytesIO
 
 import json
 # FastAPI and ORM
-from fastapi import FastAPI, File, Form, UploadFile, APIRouter, Body, Depends, HTTPException, Response, status
+from fastapi import FastAPI, File, Form, UploadFile, APIRouter, Body, Depends, HTTPException, Response, status, Request
 from sqlalchemy.orm import Session
 
 # Project's specific modules
@@ -383,7 +383,12 @@ username: str = Form(),
 password: str = Form()
 ):
     url = f'{ORTHANC_URL}/instances'
-    response = requests.get(url,auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
+    headers = {
+        'accept': 'application/json',
+        'Authorization': f'Bearer {current_user.token}',  # Bearer token in the Authorization header
+    }
+
+    response = requests.get(url,headers=headers)
 
     if response.status_code == 401:
         raise HTTPException(
@@ -404,8 +409,16 @@ username: str = Form(),
 password: str = Form(),
 file_refence: str = Form(None),
 db: Session = Depends(deps.get_db),
-# current_user: models.User = Depends(deps.get_current_active_user)
+current_user:models.User = Depends(deps.get_current_user_token),
 ):
+    headers = {
+        'accept': 'application/json',
+        'Authorization': f'Bearer {current_user.token}',  # Bearer token in the Authorization header
+    }
+
+
+    institution_name = f"{current_user.id}_{current_user.hospital}"
+    print("Hostpital",institution_name)
     # Read the uploaded DICOM file
     url = f'{ORTHANC_URL}/instances'
     file_bytes = await file.read()
@@ -420,6 +433,7 @@ db: Session = Depends(deps.get_db),
         if file_type == "image/jpeg" or file_type == "image/png":
             is_dicom = False
             final_dicom, res =  predict_png_image(file_bytes, file_refence)
+            final_dicom.InstitutionName = institution_name
             SOP_UUID = final_dicom.StudyInstanceUID
             buffer = BytesIO()
             pydicom.dcmwrite(buffer, final_dicom)
@@ -428,7 +442,7 @@ db: Session = Depends(deps.get_db),
             # get the contents of the BytesIO object as bytes
             file_bytes = buffer.read()
             #save back the results
-            response2 = requests.post(url, data=file_bytes, auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
+            response2 = requests.post(url, data=file_bytes,headers=headers)
             if response2.status_code == 401:
                 return HTTPException(
                     status_code=401,
@@ -470,6 +484,7 @@ db: Session = Depends(deps.get_db),
             # change the name//
             new_patient_name = pydicom.valuerep.PersonName(file_refence + "_Uploaded")
             dicom_img.PatientName = new_patient_name
+            dicom_img.InstitutionName = institution_name
             # Generate UIDs if they are missing
             if not dicom_img.SeriesInstanceUID:
                 dicom_img.SeriesInstanceUID = pydicom.uid.generate_uid()
@@ -485,7 +500,7 @@ db: Session = Depends(deps.get_db),
             buffer.seek(0)
             file_bytes = buffer.read()
 
-            response1 = requests.post(url, data=file_bytes, auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
+            response1 = requests.post(url, data=file_bytes, headers=headers)
             print("Current Status code:   ",response1.status_code)
             # print(dicom_img.pixel_array)
             if response1.status_code == 401:
@@ -526,6 +541,7 @@ db: Session = Depends(deps.get_db),
         dicom_data.PhotometricInterpretation = "MONOCHROME2"
         cv2.imwrite("let1.png", res.ims[0])
         dicom_data.PixelData = np.array(Image.open("let1.png").convert("L")).tobytes()
+        dicom_data.InstitutionName = institution_name
 
 
 
@@ -544,7 +560,7 @@ db: Session = Depends(deps.get_db),
         file_bytes = buffer.read()
         #save back the results
         files = {'file': ("preds_"+file.filename, file_bytes, 'application/dicom')}
-        response2 = requests.post(url, data=file_bytes, auth=requests.auth.HTTPBasicAuth(f"{username}", f"{password}"))
+        response2 = requests.post(url, data=file_bytes, headers=headers)
         print("Preds Status code:   ",response2.status_code)
         if response2.status_code == 401:
             return HTTPException(
