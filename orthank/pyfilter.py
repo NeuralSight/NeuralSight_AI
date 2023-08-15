@@ -9,7 +9,7 @@ from pydicom import dcmread, dcmwrite
 
 def find_user(autho_token):
     try:
-        submited_token = autho_token.split(" ")[1]
+        submited_token = autho_token#.split(" ")[1]
         url = 'https://backend.neuralsight.ai/api/v1/user/login/test'
         # f'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTAxMzI1NjMsInN1YiI6IjEiLCJwZXJtaXNzaW9ucyI6ImFkbWluIn0.XVgbdzRA71O_uKd9452BapOKpwAacOOXpvlNYWtW9pM'
         headers = {
@@ -38,8 +38,10 @@ def Filter(uri, **request):
         return True
 
     request_header = request['headers']
-    autho_token = request_header.get("authorization", "")
-    print(f"URL {uri}  Header With Request:  {request}")
+
+    data_request = request['get']
+    autho_token = data_request.get("token", "")
+    print(f"URL {uri}  Header With Request:  {request}  with Token   {autho_token}")
 
     res_boolen, res = find_user(autho_token)
     if "Bearer" in autho_token:
@@ -64,8 +66,13 @@ def OnRestToolsFind(output, uri, **request):
     else:
         query = json.loads(request['body'])
         # in 'modify-query' mode, we modify the tools/find query to add the InstitutionName such that Orthanc performs a first filter
-        autho_token = request['headers'].get("authorization", "")
+        # autho_token = request['headers'].get("authorization", "")
+
+        data_request = request['get']
+        autho_token = data_request.get("token", "")
+
         res_boolen, res = find_user(autho_token)
+        
         query["Query"]["InstitutionName"] = res
         print(f'Modified query:  {query}')
         answers = json.loads(orthanc.RestApiPost(f'{uri}', json.dumps(query)))
