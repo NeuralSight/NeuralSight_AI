@@ -132,11 +132,17 @@ from pydicom import dcmread, dcmwrite
 ALL_TOKENS = {
 }
 
+ALL_DETAILS= {
+
+}
 def find_user(autho_token):
     try:
         submited_token = autho_token#.split(" ")[1]
         url = 'https://backend.neuralsight.ai/api/v1/user/login/test'
         # f'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTAxMzI1NjMsInN1YiI6IjEiLCJwZXJtaXNzaW9ucyI6ImFkbWluIn0.XVgbdzRA71O_uKd9452BapOKpwAacOOXpvlNYWtW9pM'
+        
+        if autho_token in ALL_TOKENS:
+            return True, ALL_DETAILS.get(autho_token, "")
         headers = {
         'accept': 'application/json',
         'Authorization': f"Bearer {autho_token}",
@@ -149,6 +155,7 @@ def find_user(autho_token):
             return False, ""
         if "email" in data.keys():
             institution_name = f"{data.get('id')}_{data.get('hospital')}"
+            ALL_DETAILS[autho_token] = institution_name
             print(f"User Hostpital  {data.get('hospital')}  with EMail  {data['email']}")
             return True, institution_name
         else:
