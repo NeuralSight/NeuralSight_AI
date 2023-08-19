@@ -202,7 +202,10 @@ def OnRestToolsFind(output, uri, **request):
         #autho_token = data_request.get("token", "")
         current_ip = request['headers'].get('x-forwarded-for', "").split(",")[1]
         autho_token = ALL_TOKENS.get(current_ip, "")
-        res_boolen, res = find_user(autho_token)
+        if autho_token in ALL_DETAILS:
+            res = ALL_DETAILS.get(autho_token, "")
+        else:
+            res_boolen, res = find_user(autho_token)
         #print("TOKENS   ",ALL_TOKENS)
         query["Query"]["InstitutionName"] = res
         print(f'Modified query:  {query}')
