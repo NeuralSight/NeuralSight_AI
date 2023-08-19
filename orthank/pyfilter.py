@@ -141,8 +141,6 @@ def find_user(autho_token):
         'accept': 'application/json',
         'Authorization': f"Bearer {autho_token}",
         } #;print(headers)
-
-	#print(headers)
         response = requests.post(url, headers=headers)
         if response.status_code == 200:
             data = response.json()
@@ -161,29 +159,25 @@ def find_user(autho_token):
         return False, ""
 
 def Filter(uri, **request):
-    print("URL ", uri)
     if "app/explorer.html" in uri or "app" in uri or "tool" in uri:
         return True
-
     request_header = request['headers']
-    if request_header['x-forwarded-for'].split(",")[1] in ALL_TOKENS:
+    if "authorization" in request_header:
         return True
-    data_request = request['get']
-    autho_token = data_request.get("token", "")
-    ALL_TOKENS[request_header.get('x-forwarded-for').split(",")[1]] = autho_token
-    print(f"URL {uri}  Header With Request:  {request}  with Token   {autho_token}")
-
-    res_boolen, res = find_user(autho_token)
-    #if "Bearer" in autho_token:
-     #   if res_boolen:
-       #     return True
-      #  else:
-        #    return False
-
-
-        #process to filter..
-    #print("No Bearer Token in   ", autho_token)
-    return  res_boolen
+    
+    try:
+        if request_header['x-forwarded-for'].split(",")[1] in ALL_TOKENS:
+            return True
+        
+        data_request = request['get']
+        autho_token = data_request.get("token", "")
+        ALL_TOKENS[request_header.get('x-forwarded-for').split(",")[1]] = autho_token
+        print(f"URL {uri}  Header With Request:  {request}  with Token   {autho_token}")
+        res_boolen, res = find_user(autho_token)
+        return  res_boolen
+    except Exception as e:
+        print(f"Exception as {e}")
+        return False
 
 
 
