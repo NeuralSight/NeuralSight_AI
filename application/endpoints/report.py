@@ -317,7 +317,7 @@ def create_predicted_data(
 
 
 
-@router.get("/dicom/{dicom_uuid}", response_model=schemas.OrthancBaseOptional)
+@router.get("/dicom/{uuid}", response_model=schemas.OrthancBaseOptional)
 def read_dicom_by_uuid(
     uuid: str,
     db: Session = Depends(deps.get_db),
@@ -405,12 +405,14 @@ password: str = Form()
 @router.post("/dicom/pred")
 async def prostate_segmentation(
 file: UploadFile = File(...),
-username: str = Form(),
-password: str = Form(),
+# username: str = Form(),
+# password: str = Form(),
 file_refence: str = Form(None),
 db: Session = Depends(deps.get_db),
 current_user:models.User = Depends(deps.get_current_user_token),
-):
+):  
+    username="user"
+    password="user"
     headers = {
         'accept': 'application/json',
         'Authorization': f'Bearer {current_user.token}',  # Bearer token in the Authorization header
