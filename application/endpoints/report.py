@@ -420,7 +420,7 @@ current_user:models.User = Depends(deps.get_current_user_token),
     institution_name = f"{current_user.id}_{current_user.hospital}"
     print("Hostpital",institution_name)
     # Read the uploaded DICOM file
-    url = f'{ORTHANC_URL}/instances?token={current_user.token}'
+    url = f'{ORTHANC_URL}/instances'
     file_bytes = await file.read()
     response1 ={}
     patient_id = str(pydicom.uid.generate_uid())
