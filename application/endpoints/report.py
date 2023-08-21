@@ -406,18 +406,19 @@ password: str = Form()
 async def prostate_segmentation(
 file: UploadFile = File(...),
 # username: str = Form(),
-# password: str = Form(),
+token: str = Form(),
 file_refence: str = Form(None),
 db: Session = Depends(deps.get_db),
-current_user:models.User = Depends(deps.get_current_user_token),
+# current_user:models.User = Depends(deps.get_current_user_token),
 ):  
     username="user"
     password="user"
+    current_user = deps.get_current_user_by_token(token, db)
+
     headers = {
         'accept': 'application/json',
-        'Authorization': f'Bearer {current_user.token}',  # Bearer token in the Authorization header
+        'Authorization': f'Bearer {token}',  # Bearer token in the Authorization header
     }
-
 
     institution_name = f"{current_user.id}_{current_user.hospital}"
     print("Hostpital",institution_name)
